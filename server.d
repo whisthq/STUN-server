@@ -1,1 +1,0 @@
-server.o: server.c
