@@ -5,3 +5,6 @@ This repository contains the implementation for the Fractal hole punching server
 The code is in C and runs on Linux Ubuntu 18.04.
 
 Fractal hole punching server(s) are all hosted on AWS Lightsail with Ubuntu 18.04.
+
+Currently there are 1 hole punching servers:
+- Fractal-HolePunchServer-1: 52.86.203.149
