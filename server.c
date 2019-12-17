@@ -52,7 +52,7 @@ int32_t main(int32_t argc, char **argv) {
   (void) argv;
 
   // usage check
-  if (argv != 1) {
+  if (argc != 1) {
     printf("Usage: clientholepunch\n"); // no argument needed
     return 1;
   }
