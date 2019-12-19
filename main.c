@@ -148,7 +148,7 @@ int32_t main(int32_t argc, char **argv) {
             memcpy(vm_endpoint, &curr_vm->data, sizeof(struct vm));
 
             // create structs for address to send to
-            struct sockadrr_in client_addr, vm_addr;
+            struct sockaddr_in client_addr, vm_addr;
             memset(&client_addr, 0, sizeof(client_addr));
             memset(&vm_addr, 0, sizeof(vm_addr));
 
