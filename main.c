@@ -17,7 +17,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <linux/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -54,7 +53,7 @@ int32_t main(int32_t argc, char **argv) {
     return 1;
   }
 
-  // server variables
+  // hole punching server variables
   int punch_socket, recv_size; // socket ID and received packets size
   struct sockadrr_in my_addr, request_addr; // endpoint of server and requests
   char recv_buff[BUFLEN]; // buffer to receive UDP packets
