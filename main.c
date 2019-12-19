@@ -131,22 +131,22 @@ int32_t main(int32_t argc, char **argv) {
        // loop over each client waiting and see if we can pair anything
       for (i = 0; i < clients_n; i++) {
         // get the target IPv4 of the client data at this node index
-        struct client *curr_client = gll_find_node(client_list, i);
+        struct gll_node_t *curr_client = gll_find_node(client_list, i);
 
         // for a specific client, loop over all VMs to see if target IP match
         for (j = 0; j < vms_n; j++) {
           // get the IPv4 of the client data at this node index
-          struct vm*curr_vm = gll_find_node(vm_list, j);
+          struct gll_node_t* curr_vm = gll_find_node(vm_list, j);
 
           // if the client wants to connect to this VM, we send their endpoints
-          if ((int) curr_client->target == curr_vm->ipv4) {
+          if ((int) curr_client->data->target == curr_vm->data->ipv4) {
             // we send memory to avoid endianness byte issue
             // create arrays to hold this memory and copy it over
             unsigned char client_endpoint[sizeof(struct client)]; // client
-            memcpy(client_endpoint, &curr_client, sizeof(struct client));
+            memcpy(client_endpoint, &curr_client->data, sizeof(struct client));
 
             unsigned char vm_endpoint[sizeof(struct vm)]; // vm
-            memcpy(vm_endpoint, &curr_vm, sizeof(struct vm));
+            memcpy(vm_endpoint, &curr_vm->data, sizeof(struct vm));
 
             // create structs for address to send to
             struct sockadrr_in client_addr, vm_addr;

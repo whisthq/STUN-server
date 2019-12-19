@@ -1,6 +1,12 @@
 # specify compiler
 CC = gcc
 
+# specify bin name
+BIN_NAME = server
+
+# objects to build
+OBJS = linkedlist.o main.o
+
 # warnings
 WARNINGS = \
 	-Wall \
@@ -26,15 +32,8 @@ CWARNINGS := $(WARNINGS) \
 CFLAGS := -g -fPIC -std=c99 $(CWARNINGS)
 
 # make all objects
-all: linkedlist main
-
-# make the linked list file into object
-linkedlist: linkedlist.o
-	gcc -c linkedlist.c linkedlist.o
-
-# make the server main file into object
-main: main.o
-	gcc -o main.c server.o
+all: clean $(OBJS)
+	$(CC) -o $(BIN_NAME) $(OBJS)
 
 # apply C flags to all C files
 %.o: %.c Makefile
