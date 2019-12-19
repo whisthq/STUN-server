@@ -99,7 +99,7 @@ int32_t main(int32_t argc, char **argv) {
      }
      else { // this is a VM waiting for a connection
        // create and fill struct pointer to hold this new vm
-       struct vm *new_vm;
+       struct client *new_vm;
        new_vm->ipv4 = request_addr.sin_addr.s_addr;
        new_vm->port = request_addr.sin_port;
        // don't add anything for the buffer
@@ -136,8 +136,8 @@ int32_t main(int32_t argc, char **argv) {
             unsigned char client_endpoint[sizeof(struct client)]; // client
             memcpy(client_endpoint, &curr_client->data, sizeof(struct client));
 
-            unsigned char vm_endpoint[sizeof(struct vm)]; // vm
-            memcpy(vm_endpoint, &curr_vm->data, sizeof(struct vm));
+            unsigned char vm_endpoint[sizeof(struct client)]; // vm
+            memcpy(vm_endpoint, &curr_vm->data, sizeof(struct client));
 
             // create structs for address to send to
             struct sockaddr_in client_addr, vm_addr;
@@ -152,7 +152,7 @@ int32_t main(int32_t argc, char **argv) {
             // fill VM address struct
             vm_addr.sin_family = AF_INET;
             vm_addr.sin_port = htons(curr_vm->data->port);
-            vm_addr.sin_addr.s_addr = htonl(curr_vm->dat->ipv4);
+            vm_addr.sin_addr.s_addr = htonl(curr_vm->data->ipv4);
 
             // send the endpoint of the client to the VM
             if (sendto(punch_socket, &client_endpoint, sizeof(struct client), 0, (struct sockaddr *) &vm_addr, addr_size) < 0) {
@@ -161,7 +161,7 @@ int32_t main(int32_t argc, char **argv) {
             }
 
             // send the endpoint of the vm to the client
-            if (sendto(punch_socket, &vm_endpoint, sizeof(struct vm), 0, (struct sockaddr *) &client_addr, addr_size) < 0) {
+            if (sendto(punch_socket, &vm_endpoint, sizeof(struct client), 0, (struct sockaddr *) &client_addr, addr_size) < 0) {
               printf("Unable to send VM endpoint to client.\n");
               return 7;
             }
