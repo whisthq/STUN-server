@@ -58,7 +58,7 @@ int32_t main(int32_t argc, char **argv) {
   size_t recv_size; // received packets size
   struct sockaddr_in my_addr, request_addr; // endpoint of server and requests
   char recv_buff[BUFLEN]; // buffer to receive UDP packets
-  socketlen_t addr_size = sizeof(request_addr); // length of request address struct
+  socklen_t addr_size = sizeof(request_addr); // length of request address struct
 
   // linked lists to hold the pairing requests to be fulfilled
   struct gll_t *client_list = gll_init();
@@ -89,7 +89,7 @@ int32_t main(int32_t argc, char **argv) {
      memset(&request_addr, 0, sizeof(request_addr));
 
      // receive a UDP packet for a connection request
-     if ((recv_size = recvfrom(punch_socket, recv_buff, BUFLEN, 0, (struct sockaddr *) &request_addr, &addr_size)) < 0) {
+     if ((recv_size = recvfrom(punch_socket, recv_buff, BUFLEN, 0, (struct sockaddr *) &request_addr, addr_size)) < 0) {
        printf("Unable to receive UDP packet.\n");
        return 3;
      }
