@@ -26,7 +26,11 @@ CWARNINGS := $(WARNINGS) \
 CFLAGS := -g -fPIC -std=c99 $(CWARNINGS)
 
 # make all objects
-all: server
+all: linkedlist server
+
+# make the linked list file into object
+linkedlist: linkedlist.o
+	gcc -o linkedlist linkedlist.o
 
 # make the server main file into object
 server: server.o

@@ -1,132 +1,194 @@
 /*
- *
  * This file creates a server that connects to two clients through UDP hole
  * punch, acting as a Fractal hole punching server. This hole punching serer is
  * built for AWS Lightsail with Ubuntu 18.04.
  *
- * Protocol version: 1.0
+ * Hole Punching Server version: 1.0
  *
- * Last modification: 12/17/2019
+ * Last modification: 12/18/2019
  *
  * By: Philippe Noël
  *
  * Copyright Fractal Computers, Inc. 2019
 **/
 
-
-
-
-
-
-
-
-
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
-
-#include <arpa/inet.h>
-#include <errno.h>
-#include <netinet/ip.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netinet/ip.h>
 
-/**
- * The server listens on the specified port for UDP packets.  It then
- * alternates between two states as it receives messages from clients.
- *
- * In the first state, the server replies to the connecting client with address
- * and port 0.  A client receiving this message waits to receive UDP packets
- * another client.
- *
- * In the second state, the server replies to the connecting client with the
- * address and port of the client in the first state.  This client can then
- * connect to the listening client.
- */
+#define HOLEPUNCH_PORT 48488 // Fractal default holepunch port
+#define BUFLEN 128 // to hold the target IPv4
+#define QUEUE_LEN 50 // arbitrary, at most 50 concurrent pairing requests
+
+// simple struct to hold the client endpoints
+struct client {
+  int ipv4; // IPv4 of the client
+  int port; // port of the client
+  char target[BUFLEN]; // IPv4 of the VM that this client wants to connect to
+};
+
+// simple struct to hold the VM endpoints
+struct vm {
+  int ipv4; // IPv4 of the VM
+  int port; // port of the vm
+}
+
+/// @brief listens for UDP VM-client pairs to connect through hole punching
+/// @details hole punches through NATs by saving received address and port
 int32_t main(int32_t argc, char **argv) {
   // unused argv
   (void) argv;
 
   // usage check
   if (argv != 1) {
-    printf("Usage: clientholepunch\n"); // no argument needed
+    printf("Usage: ./server\n"); // no argument needed
     return 1;
   }
 
+  // server variables
+  int punch_socket, recv_size; // socket ID and received packets size
+  struct sockadrr_in my_addr, request_addr; // endpoint of server and requests
+  char recv_buff[BUFLEN]; // buffer to receive UDP packets
+  int addr_size = sizeof(request_addr); // length of request address struct
 
+  // linked lists to hold the pairing requests to be fulfilled
+  gll_t *client_list = gll_init();
+  gll_t *vm_list = gll_init();
+  int i, j, clients_n = 0, vms_n = 0; // counter vars
 
+  // create listening socket listening for VM-client pairs to connect
+  if ((punch_socket = socket(AF_INET, SOCKET_DGRAM, IPPROTO_UDP)) < -1) {
+    printf("Unable to create socket.\n");
+    return 1;
+  }
 
+  // fill address struct over the default Fractal hole punching port for any
+  memset(&my_addr, 0, sizeof(my_addr));
+  my_addr.sin_family = AF_INET;
+  my_addr.sin_port = htons(HOLEPUNCH_PORT);
+  my_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
-    int port;
-    port = 48800; // listen on this port, Fractal default
-    uint16_t real_port;
-    real_port = (uint16_t) port;
+  // bind the listensocket to our server address
+  if (bind(listensocket, (struct sockaddr *) &my_addr, sizeof(my_addr)) < 0) {
+    prinf("Unable to bound socket to port %d.\n", HOLEPUNCH_PORT);
+    return 2;
+  }
 
-    int fd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (fd == -1) {
-        fprintf(stderr, "Unable to create socket.  errno %d\n", errno);
-        return 2;
-    }
+   // loop forever to keep connecting VM-client pairs
+   while (1) {
+     // empty memory for request address
+     memset(&request_addr, 0, sizeof(request_addr));
 
-    { /* Bind to address */
-        struct sockaddr_in my_addr;
-        memset(&my_addr, 0, sizeof(my_addr));
-        my_addr.sin_family      = AF_INET;
-        my_addr.sin_port        = htons(real_port);
-        my_addr.sin_addr.s_addr = INADDR_ANY;
+     // receive a UDP packet for a connection request
+     if ((recv_size = recvfrom(punch_socket, recv_buff, BUFLEN, 0, (struct sockaddr *) &request_addr, &addr_size)) < 0) {
+       printf("Unable to receive UDP packet.\n");
+       return 3;
+     }
 
-        int bindret = bind(fd, (const struct sockaddr *)&my_addr,
-            sizeof(my_addr));
-        if (bindret < 0) {
-            fprintf(stderr, "Unable to bind to port %d.  errno %d\n", port,
-                errno);
-            return 7;
-        }
-    }
+     // if the packet is empty, then it's a VM waiting to be connected to, if the
+     // packet is not, it contains the IPv4 of the server to connect to
+     // store endpoint information to pair later
+     if (recv_size > 0) {
+       // create and fill struct pointer to hold this new client
+       struct client *new_client;
+       new_client->ipv4 = request_addr.sin_addr.s_addr;
+       new_client->port = request_addr.sin_port;
+       new_client->target = recv_buff;
 
-    /* Type-pun for a packed struct */
-    uint32_t * last_addr;
-    uint16_t * last_port;
-    char buf[sizeof(*last_addr) + sizeof(*last_port)];
-    memset(buf, 0, sizeof(buf));
+       // create a node for this new client and add it to the linked list
+       if (gll_push_end(client_list, new_client) < 0) {
+         printf("Unable to add client struct to end of client list.\n");
+         return 4;
+       }
+       clients_n++; // increment count
+     }
+     else { // this is a VM waiting for a connection
+       // create and fill struct pointer to hold this new vm
+       struct vm *new_vm;
+       new_vm->ipv4 = request_addr.sin_addr.s_addr;
+       new_vm->port = request_addr.sin_port;
 
-    last_addr   = (uint32_t *) (buf          );
-    last_port   = (uint16_t *) (last_addr + 1);
+       // create a node for this new vm and add it to the linked list
+       if (gll_push_end(vm_list, new_vm) < 0) {
+         printf("Unable to add vm struct to end of vm list.\n");
+         return 5;
+       }
+       vms_n++; // increment count
+     }
 
-    for (uint32_t iter = 0; ; iter++) {
-        struct sockaddr_in  next_data;
-        socklen_t           next_len    = sizeof(next_data);
-        /* Keep Valgrind happy */
-        memset(&next_data, 0, sizeof(next_data));
+     // check if we have any possible pairing to make
+     // if there is at least 1 VM and 1 client waiting for a pairing
+     if (vms_n > 0 && clients_n > 0) {
+       // loop over each client waiting and see if we can pair anything
+      for (i = 0; i < clients_n; i++) {
+        // get the target IPv4 of the client data at this node index
+        struct client *curr_client = gll_find_node(client_list, i);
 
-        // Wait for contact
-        ssize_t recvret = recvfrom(fd, NULL, 0, MSG_TRUNC,
-            (struct sockaddr *) &next_data, &next_len);
-        if (recvret < 0) {
-            fprintf(stderr, "Error on recvfrom.  errno %d\n", errno);
-            return 3;
-        }
+        // for a specific client, loop over all VMs to see if target IP match
+        for (j = 0; j < vms_n; j++) {
+          // get the IPv4 of the client data at this node index
+          struct vm*curr_vm = gll_find_node(vm_list, j);
 
-        // Reply with what we know.
-        ssize_t sendret = sendto(fd, buf, sizeof(buf), 0, &next_data,
-            sizeof(next_data));
-        if (sendret < 0) {
-            fprintf(stderr, "Error on sendto.  errno %d\n", errno);
-            return 6;
-        }
+          // if the client wants to connect to this VM, we send their endpoints
+          if ((int) curr_client->target == curr_vm->ipv4) {
+            // we send memory to avoid endianness byte issue
+            // create arrays to hold this memory and copy it over
+            unsigned char client_endpoint[sizeof(struct client)]; // client
+            memcpy(client_endpoint, &curr_client, sizeof(struct client));
 
-        // Swap
-        if (iter %= 2) {
-            memset(buf, 0, sizeof(buf));
-        } else {
-            *last_addr = next_data.sin_addr.s_addr;
-            *last_port = next_data.sin_port;
-        }
-    }
+            unsigned char vm_endpoint[sizeof(struct vm)]; // vm
+            memcpy(vm_endpoint, &curr_vm, sizeof(struct vm));
 
-    return 0;
+            // create structs for address to send to
+            struct sockadrr_in client_addr, vm_addr;
+            memset(&client_addr, 0, sizeof(client_addr));
+            memset(&vm_addr, 0, sizeof(vm_addr));
+
+            // fill client address struct
+            client_addr.sin_family = AF_INET;
+            client_addr.sin_port = htons(curr_client->port);
+            client_addr.sin_addr.s_addr = htonl(curr_client->ipv4);
+
+            // fill VM address struct
+            vm_addr.sin_family = AF_INET;
+            vm_addr.sin_port = htons(curr_vm->port);
+            vm_addr.sin_addr.s_addr = htonl(curr_vm->ipv4);
+
+            // send the endpoint of the client to the VM
+            if (sendto(punch_socket, &client_endpoint, sizeof(struct client), 0, (struct sockaddr *) &vm_addr, addr_size) < 0) {
+              printf("Unable to send client endpoint to VM.\n");
+              return 6;
+            }
+
+            // send the endpoint of the vm to the client
+            if (sendto(punch_socket, &vm_endpoint, sizeof(struct vm), 0, (struct sockaddr *) &client_addr, addr_size) < 0) {
+              printf("Unable to send VM endpoint to client.\n");
+              return 7;
+            }
+            // the two are now paired and can start communicating over UDP
+
+            // now that we paired the two, we remove them from the request lists
+            gll_remove(client_list, i); // remove client
+            gll_remove(vm_list, j); // remove VM
+
+            // and decrease the counts left to connect
+            clients_n--;
+            vms_n--;
+          }
+        } // vms for loop
+      } // clients for loop
+    } // if there is a non-zero # of VMs and clients to connect
+  } // forever while loop
+  // server loop exited, close linked lists to exit
+  gll_destroy(client_list);
+  gll_destroy(vm_list);
+
+  // close socket and exit
+  close(punch_socket);
+  return 0;
 }
