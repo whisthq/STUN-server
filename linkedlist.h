@@ -12,6 +12,8 @@
  * Copyright Fractal Computers, Inc. 2019
 **/
 
+#define BUFLEN 128 // to hold the target IPv4
+
 // simple struct to hold the client endpoints
 struct client {
   unsigned int ipv4; // IPv4 of the client to connect to another client

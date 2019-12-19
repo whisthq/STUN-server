@@ -25,7 +25,6 @@
 #include "linkedlist.h" // header file for the linked list functions
 
 #define HOLEPUNCH_PORT 48488 // Fractal default holepunch port
-#define BUFLEN 128 // to hold the target IPv4
 #define QUEUE_LEN 50 // arbitrary, at most 50 concurrent pairing requests
 
 /// @brief listens for UDP VM-client pairs to connect through hole punching
@@ -131,7 +130,7 @@ int32_t main(int32_t argc, char **argv) {
 
 
           // if the client wants to connect to this VM, we send their endpoints
-          if (curr_client->data->target == curr_vm->data->ipv4) {
+          if (curr_client->data.target == curr_vm->data.ipv4) {
             // we send memory to avoid endianness byte issue
             // create arrays to hold this memory and copy it over
             unsigned char client_endpoint[sizeof(struct client)]; // client
@@ -147,13 +146,13 @@ int32_t main(int32_t argc, char **argv) {
 
             // fill client address struct
             client_addr.sin_family = AF_INET;
-            client_addr.sin_port = htons(curr_client->data->port);
-            client_addr.sin_addr.s_addr = htonl(curr_client->data->ipv4);
+            client_addr.sin_port = htons(curr_client->data.port);
+            client_addr.sin_addr.s_addr = htonl(curr_client->data.ipv4);
 
             // fill VM address struct
             vm_addr.sin_family = AF_INET;
-            vm_addr.sin_port = htons(curr_vm->data->port);
-            vm_addr.sin_addr.s_addr = htonl(curr_vm->data->ipv4);
+            vm_addr.sin_port = htons(curr_vm->data.port);
+            vm_addr.sin_addr.s_addr = htonl(curr_vm->data.ipv4);
 
             // send the endpoint of the client to the VM
             if (sendto(punch_socket, &client_endpoint, sizeof(struct client), 0, (struct sockaddr *) &vm_addr, addr_size) < 0) {
