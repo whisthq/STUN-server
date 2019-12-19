@@ -41,7 +41,7 @@ int32_t main(int32_t argc, char **argv) {
 
   // hole punching server variables
   int punch_socket; // socket ID
-  size_t recv_size; // received packets size
+  ssize_t recv_size; // received packets size
   struct sockaddr_in my_addr, request_addr; // endpoint of server and requests
   char recv_buff[BUFLEN]; // buffer to receive UDP packets
   socklen_t addr_size = sizeof(request_addr); // length of request address struct
@@ -126,7 +126,7 @@ int32_t main(int32_t argc, char **argv) {
           struct gll_node_t* curr_vm = gll_find_node(vm_list, j);
 
           // if the client wants to connect to this VM, we send their endpoints
-          if (curr_client->data->target == curr_vm->data->ipv4) {
+          if ((char *) curr_client->data->target == (char *) curr_vm->data->ipv4) {
             // we send memory to avoid endianness byte issue
             // create arrays to hold this memory and copy it over
             unsigned char client_endpoint[sizeof(struct client)]; // client

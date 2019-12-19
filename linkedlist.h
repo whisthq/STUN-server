@@ -16,8 +16,8 @@
 
 // simple struct to hold the client endpoints
 struct client {
-  unsigned int ipv4; // IPv4 of the client to connect to another client
-  int port; // port of the client to connect to another client
+  char *ipv4; // IPv4 of the client to connect to another client
+  uint16_t port; // port of the client to connect to another client
   char target[BUFLEN]; // IPv4 of the VM to connect to if this is a local device
 };
 
