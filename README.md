@@ -1,4 +1,4 @@
-# Fractal Hole Punching Server
+# Fractal UDP Hole Punching Server
 
 This repository contains the implementation for the Fractal hole punching server that initiates connection between a Fractal cloud computer and a client device.
 
@@ -14,9 +14,9 @@ Each AWS Lightsail server, before making and running the server code, needs to b
 
 You can then clone this repository and build with `make`.
 
-The server can be run with `./server` and will run forever, hole-punching a direct UDP connection between a Fractal cloud computer and a client device sequentially as it receives the requests whenever a user logs in. 
+The server can be run with `./server` and will run forever, hole-punching a direct UDP connection between a Fractal cloud computer and a client device sequentially as it receives the requests whenever a user logs in.
 
 Currently there are 1 hole punching servers:
 - Fractal-HolePunchServer-1
-    - Static IP: 52.86.203.149
+    - Public IP: 52.86.203.149
     - Location: US-East 1 (Northern Virginia)
