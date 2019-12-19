@@ -28,7 +28,7 @@ struct gll_t {
 
 // initialize a new linked list
 // returns a pointer to the new list
-struct gll_t *gll_init();
+struct gll_t *gll_init(void);
 
 // initialize a new node
 // takes in a pointer to the data

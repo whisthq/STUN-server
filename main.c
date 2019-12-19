@@ -15,13 +15,13 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include <netinet/ip.h>
 
 #include "linkedlist.h" // header file for the linked list functions
 
@@ -102,7 +102,7 @@ int32_t main(int32_t argc, char **argv) {
        struct client *new_client;
        new_client->ipv4 = request_addr.sin_addr.s_addr;
        new_client->port = request_addr.sin_port;
-       new_client->target = recv_buff;
+       memcpy(&new_client->target, &recv_buffer, recv_size);
 
        // create a node for this new client and add it to the linked list
        if (gll_push_end(client_list, new_client) < 0) {
@@ -155,13 +155,13 @@ int32_t main(int32_t argc, char **argv) {
 
             // fill client address struct
             client_addr.sin_family = AF_INET;
-            client_addr.sin_port = htons(curr_client->port);
-            client_addr.sin_addr.s_addr = htonl(curr_client->ipv4);
+            client_addr.sin_port = htons(curr_client->data->port);
+            client_addr.sin_addr.s_addr = htonl(curr_client->data->ipv4);
 
             // fill VM address struct
             vm_addr.sin_family = AF_INET;
-            vm_addr.sin_port = htons(curr_vm->port);
-            vm_addr.sin_addr.s_addr = htonl(curr_vm->ipv4);
+            vm_addr.sin_port = htons(curr_vm->data->port);
+            vm_addr.sin_addr.s_addr = htonl(curr_vm->data->ipv4);
 
             // send the endpoint of the client to the VM
             if (sendto(punch_socket, &client_endpoint, sizeof(struct client), 0, (struct sockaddr *) &vm_addr, addr_size) < 0) {
