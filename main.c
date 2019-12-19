@@ -36,7 +36,7 @@ struct client {
 struct vm {
   int ipv4; // IPv4 of the VM
   int port; // port of the vm
-}
+};
 
 /// @brief listens for UDP VM-client pairs to connect through hole punching
 /// @details hole punches through NATs by saving received address and port
@@ -45,13 +45,8 @@ int32_t main(int32_t argc, char **argv) {
   (void) argv;
 
   // usage check
-<<<<<<< HEAD
-  if (argv != 1) {
-    printf("Usage: ./server\n"); // no argument needed
-=======
   if (argc != 1) {
-    printf("Usage: clientholepunch\n"); // no argument needed
->>>>>>> 996a6be7bf69bd28668196376d1cf45dba61df91
+    printf("Usage: ./main\n"); // no argument needed
     return 1;
   }
 

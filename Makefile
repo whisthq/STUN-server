@@ -26,15 +26,15 @@ CWARNINGS := $(WARNINGS) \
 CFLAGS := -g -fPIC -std=c99 $(CWARNINGS)
 
 # make all objects
-all: linkedlist server
+all: linkedlist main
 
 # make the linked list file into object
 linkedlist: linkedlist.o
 	gcc -c linkedlist.c linkedlist.o
 
 # make the server main file into object
-server: server.o
-	gcc -o server.c server.o
+main: main.o
+	gcc -o main.c server.o
 
 # apply C flags to all C files
 %.o: %.c Makefile
