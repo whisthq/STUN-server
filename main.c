@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -57,12 +58,12 @@ int32_t main(int32_t argc, char **argv) {
   int addr_size = sizeof(request_addr); // length of request address struct
 
   // linked lists to hold the pairing requests to be fulfilled
-  gll_t *client_list = gll_init();
-  gll_t *vm_list = gll_init();
+  struct gll_t *client_list = gll_init();
+  struct gll_t *vm_list = gll_init();
   int i, j, clients_n = 0, vms_n = 0; // counter vars
 
   // create listening socket listening for VM-client pairs to connect
-  if ((punch_socket = socket(AF_INET, SOCKET_DGRAM, IPPROTO_UDP)) < -1) {
+  if ((punch_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < -1) {
     printf("Unable to create socket.\n");
     return 1;
   }
@@ -74,8 +75,8 @@ int32_t main(int32_t argc, char **argv) {
   my_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
   // bind the listensocket to our server address
-  if (bind(listensocket, (struct sockaddr *) &my_addr, sizeof(my_addr)) < 0) {
-    prinf("Unable to bound socket to port %d.\n", HOLEPUNCH_PORT);
+  if (bind(punch_socket, (struct sockaddr *) &my_addr, sizeof(my_addr)) < 0) {
+    printf("Unable to bound socket to port %d.\n", HOLEPUNCH_PORT);
     return 2;
   }
 

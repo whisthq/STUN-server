@@ -19,8 +19,8 @@
 
 // initialize a new linked list
 // returns a pointer to the new list
-gll_t *gll_init() {
-  gll_t *list = (gll_t *) malloc(sizeof(gll_t));
+struct gll_t *gll_init() {
+  struct gll_t *list = (struct gll_t *) malloc(sizeof(struct gll_t));
   list->size = 0;
   list->first = NULL;
   list->last = NULL;
@@ -30,8 +30,8 @@ gll_t *gll_init() {
 // initialize a new node
 // takes in a pointer to the data
 // returns a pointer to the new node
-gll_node_t *gll_init_node(void *data) {
-  gll_node_t *node = (gll_node_t *) malloc(sizeof(gll_node_t));
+struct gll_node_t *gll_init_node(void *data) {
+  struct gll_node_t *node = (struct gll_node_t *) malloc(sizeof(struct gll_node_t));
   node->data = data;
   node->prev = NULL;
   node->next = NULL;
@@ -41,11 +41,11 @@ gll_node_t *gll_init_node(void *data) {
 // find node at a given position
 // takes in a pointer to a list and a position
 // returns a pointer to the node or NULL on failure
-gll_node_t *gll_find_node(gll_t *list, int pos) {
+struct gll_node_t *gll_find_node(struct gll_t *list, int pos) {
   if (pos > list->size)
     return NULL;
 
-  gll_node_t *currNode;
+  struct gll_node_t *currNode;
   int currPos;
   int reverse;
 
@@ -73,9 +73,9 @@ gll_node_t *gll_find_node(gll_t *list, int pos) {
 // add an element to the end of a list
 // takes in a pointer to a list and a pointer to the data
 // returns 0 on success, -1 on failure
-int gll_push_end(gll_t *list, void *data) {
+int gll_push_end(struct gll_t *list, void *data) {
   // initialize new node
-  gll_node_t *newNode = gll_init_node(data);
+  struct gll_node_t *newNode = gll_init_node(data);
 
   // if list is empty
   if (list->size == 0) {
@@ -94,8 +94,8 @@ int gll_push_end(gll_t *list, void *data) {
 // remove a node from an arbitrary position
 // takes in a pointer to a list and a poiner to data
 // return 0 on success, -1 on failure
-void *gll_remove(gll_t *list, int pos) {
-  gll_node_t *currNode = gll_find_node(list, pos);
+void *gll_remove(struct gll_t *list, int pos) {
+  struct gll_node_t *currNode = gll_find_node(list, pos);
   void *data = NULL;
 
   if(currNode == NULL)
@@ -120,9 +120,9 @@ void *gll_remove(gll_t *list, int pos) {
 
 // destroys a list a frees all list realted memory, but not data stored at nodes
 // takes in a pointer to a list
-void gll_destroy(gll_t *list) {
-  gll_node_t *currNode = list->first;
-  gll_node_t *nextNode;
+void gll_destroy(struct gll_t *list) {
+  struct gll_node_t *currNode = list->first;
+  struct gll_node_t *nextNode;
 
   while (currNode != NULL) {
     nextNode = currNode->next;
