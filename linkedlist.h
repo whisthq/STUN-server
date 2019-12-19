@@ -20,7 +20,7 @@ typedef struct node_t {
 } gll_node_t;
 
 // generic linked list type
-typedef struct {
+typedef struct list_t {
   int size;
   gll_node_t *first;
   gll_node_t *last;

@@ -30,11 +30,11 @@ all: linkedlist server
 
 # make the linked list file into object
 linkedlist: linkedlist.o
-	gcc -o linkedlist linkedlist.o
+	gcc -c linkedlist.c linkedlist.o
 
 # make the server main file into object
 server: server.o
-	gcc -o server server.o
+	gcc -o server.c server.o
 
 # apply C flags to all C files
 %.o: %.c Makefile
