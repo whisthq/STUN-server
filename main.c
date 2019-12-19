@@ -20,7 +20,10 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
 #include <netinet/ip.h>
+
+#include "linkedlist.h" // header file for the linked list functions
 
 #define HOLEPUNCH_PORT 48488 // Fractal default holepunch port
 #define BUFLEN 128 // to hold the target IPv4

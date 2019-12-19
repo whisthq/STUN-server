@@ -48,7 +48,7 @@ int gll_push_end(struct gll_t *list, void *data);
 // remove a node from an arbitrary position
 // takes in a pointer to a list and a poiner to data
 // return 0 on success, -1 on failure
-void *gll_remove(gll_t *list, int pos);
+void *gll_remove(struct gll_t *list, int pos);
 
 // destroys a list a frees all list realted memory, but not data stored at nodes
 // takes in a pointer to a list
