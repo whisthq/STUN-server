@@ -30,7 +30,7 @@
 
 // simple struct to hold the client endpoints
 struct client {
-  int ipv4; // IPv4 of the client
+  unsigned int ipv4; // IPv4 of the client
   int port; // port of the client
   char target[BUFLEN]; // IPv4 of the VM that this client wants to connect to
 };
@@ -54,10 +54,11 @@ int32_t main(int32_t argc, char **argv) {
   }
 
   // hole punching server variables
-  int punch_socket, recv_size; // socket ID and received packets size
+  int punch_socket; // socket ID
+  size_t recv_size; // received packets size
   struct sockaddr_in my_addr, request_addr; // endpoint of server and requests
   char recv_buff[BUFLEN]; // buffer to receive UDP packets
-  int addr_size = sizeof(request_addr); // length of request address struct
+  socketlen_t addr_size = sizeof(request_addr); // length of request address struct
 
   // linked lists to hold the pairing requests to be fulfilled
   struct gll_t *client_list = gll_init();
