@@ -45,8 +45,13 @@ int32_t main(int32_t argc, char **argv) {
   (void) argv;
 
   // usage check
+<<<<<<< HEAD
   if (argv != 1) {
     printf("Usage: ./server\n"); // no argument needed
+=======
+  if (argc != 1) {
+    printf("Usage: clientholepunch\n"); // no argument needed
+>>>>>>> 996a6be7bf69bd28668196376d1cf45dba61df91
     return 1;
   }
 
