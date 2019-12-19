@@ -138,7 +138,7 @@ int32_t main(int32_t argc, char **argv) {
           struct gll_node_t* curr_vm = gll_find_node(vm_list, j);
 
           // if the client wants to connect to this VM, we send their endpoints
-          if ((int) curr_client->data.target == curr_vm->data.ipv4) {
+          if (*(curr_client->data).target == *(curr_vm->data).ipv4) {
             // we send memory to avoid endianness byte issue
             // create arrays to hold this memory and copy it over
             unsigned char client_endpoint[sizeof(struct client)]; // client
