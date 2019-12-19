@@ -28,19 +28,6 @@
 #define BUFLEN 128 // to hold the target IPv4
 #define QUEUE_LEN 50 // arbitrary, at most 50 concurrent pairing requests
 
-// simple struct to hold the client endpoints
-struct client {
-  unsigned int ipv4; // IPv4 of the client
-  int port; // port of the client
-  char target[BUFLEN]; // IPv4 of the VM that this client wants to connect to
-};
-
-// simple struct to hold the VM endpoints
-struct vm {
-  int ipv4; // IPv4 of the VM
-  int port; // port of the vm
-};
-
 /// @brief listens for UDP VM-client pairs to connect through hole punching
 /// @details hole punches through NATs by saving received address and port
 int32_t main(int32_t argc, char **argv) {
@@ -89,7 +76,7 @@ int32_t main(int32_t argc, char **argv) {
      memset(&request_addr, 0, sizeof(request_addr));
 
      // receive a UDP packet for a connection request
-     if ((recv_size = recvfrom(punch_socket, recv_buff, BUFLEN, 0, (struct sockaddr *) &request_addr, addr_size)) < 0) {
+     if ((recv_size = recvfrom(punch_socket, recv_buff, BUFLEN, 0, (struct sockaddr *) &request_addr, &addr_size)) < 0) {
        printf("Unable to receive UDP packet.\n");
        return 3;
      }
@@ -116,6 +103,7 @@ int32_t main(int32_t argc, char **argv) {
        struct vm *new_vm;
        new_vm->ipv4 = request_addr.sin_addr.s_addr;
        new_vm->port = request_addr.sin_port;
+       // don't add anything for the buffer
 
        // create a node for this new vm and add it to the linked list
        if (gll_push_end(vm_list, new_vm) < 0) {
@@ -138,8 +126,12 @@ int32_t main(int32_t argc, char **argv) {
           // get the IPv4 of the client data at this node index
           struct gll_node_t* curr_vm = gll_find_node(vm_list, j);
 
+
+
+
+
           // if the client wants to connect to this VM, we send their endpoints
-          if (*(curr_client->data).target == *(curr_vm->data).ipv4) {
+          if (curr_client->data->target == curr_vm->data->ipv4) {
             // we send memory to avoid endianness byte issue
             // create arrays to hold this memory and copy it over
             unsigned char client_endpoint[sizeof(struct client)]; // client

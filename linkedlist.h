@@ -12,9 +12,16 @@
  * Copyright Fractal Computers, Inc. 2019
 **/
 
+// simple struct to hold the client endpoints
+struct client {
+  unsigned int ipv4; // IPv4 of the client to connect to another client
+  int port; // port of the client to connect to another client
+  char target[BUFLEN]; // IPv4 of the VM to connect to if this is a local device
+};
+
 // generic linked list node type
 struct gll_node_t {
-  void *data;
+  struct client *data;
   struct gll_node_t *prev;
   struct gll_node_t *next;
 };
