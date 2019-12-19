@@ -15,9 +15,9 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <linux/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -102,7 +102,7 @@ int32_t main(int32_t argc, char **argv) {
        struct client *new_client;
        new_client->ipv4 = request_addr.sin_addr.s_addr;
        new_client->port = request_addr.sin_port;
-       memcpy(&new_client->target, &recv_buffer, recv_size);
+       memcpy(&new_client->target, &recv_buff, recv_size);
 
        // create a node for this new client and add it to the linked list
        if (gll_push_end(client_list, new_client) < 0) {
