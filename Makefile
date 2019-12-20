@@ -33,15 +33,15 @@ CFLAGS := -g -fPIC -std=c99 $(CWARNINGS)
 
 # make all objects
 all: clean $(OBJS)
-  $(CC) -o $(BIN_NAME) $(OBJS)
+	$(CC) -o $(BIN_NAME) $(OBJS)
 
 # apply C flags to all C files
 %.o: %.c Makefile
-  $(CC) $(CFLAGS) -fPIC -MMD -MP -c $< -o $@
+	$(CC) $(CFLAGS) -fPIC -MMD -MP -c $< -o $@
 
 # clean directory
 clean:
-  -rm -f server.o server *.d
+	-rm -f server.o server *.d
 
 # clear
 .PHONY: all clean
