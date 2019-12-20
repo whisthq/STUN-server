@@ -93,6 +93,7 @@ int32_t main(int32_t argc, char **argv) {
      // store endpoint information to pair later
 
      // fill struct pointer to hold this new client for elements in common to both
+     memset(&new_client, 0, sizeof(struct client));
      new_client->ipv4 = request_addr.sin_addr.s_addr;
      new_client->port = request_addr.sin_port;
 
