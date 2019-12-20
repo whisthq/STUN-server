@@ -41,7 +41,7 @@ int32_t main(int32_t argc, char **argv) {
 
   // hole punching server variables
   int punch_socket; // socket ID
-  ssize_t recv_size; // received packets size
+  size_t recv_size; // received packets size
   struct sockaddr_in my_addr, request_addr; // endpoint of server and requests
   char recv_buff[BUFLEN]; // buffer to receive UDP packets
   socklen_t addr_size = sizeof(request_addr); // length of request address struct
