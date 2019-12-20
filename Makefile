@@ -41,7 +41,7 @@ all: clean $(OBJS)
 
 # clean directory
 clean:
-	-rm -f server.o server *.d
+	-rm -f linkedlist.o main.o server *.d
 
 # clear
 .PHONY: all clean
