@@ -5,7 +5,7 @@
  *
  * Hole Punching Server version: 1.0
  *
- * Last modification: 12/19/2019
+ * Last modification: 12/20/2019
  *
  * By: Philippe Noël
  *
@@ -62,10 +62,11 @@ int32_t main(int32_t argc, char **argv) {
   struct sockaddr_in client_addr, vm_addr; // addresses to send to
 
   // create listening socket listening for VM-client pairs to connect
-  if ((punch_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < -1) {
+  if ((punch_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
     printf("Unable to create socket.\n");
     return 1;
   }
+  printf("UDP socket created.\n");
 
   // fill address struct over the default Fractal hole punching port for any
   memset(&my_addr, 0, sizeof(my_addr));
@@ -78,51 +79,54 @@ int32_t main(int32_t argc, char **argv) {
     printf("Unable to bound socket to port %d.\n", HOLEPUNCH_PORT);
     return 2;
   }
+  printf("UDP socket bound to port %d\n.", HOLEPUNCH_PORT);
 
-   // loop forever to keep connecting VM-client pairs
-   while (1) {
-     // empty memory for request address
-     memset(&request_addr, 0, sizeof(request_addr));
+  // loop forever to keep connecting VM-client pairs
+  while (1) {
+    // empty memory for request address
+    memset(&request_addr, 0, sizeof(request_addr));
 
-     // receive a UDP packet for a connection request
-     if ((recv_size = recvfrom(punch_socket, recv_buff, BUFLEN, 0, (struct sockaddr *) &request_addr, &addr_size)) < 0) {
-       printf("Unable to receive UDP packet.\n");
-       return 3;
-     }
-     // if the packet is empty, then it's a VM waiting to be connected to, if the
-     // packet is not, it contains the IPv4 of the server to connect to
-     // store endpoint information to pair later
+    // receive a UDP packet for a connection request
+    if ((recv_size = recvfrom(punch_socket, recv_buff, BUFLEN, 0, (struct sockaddr *) &request_addr, &addr_size)) < 0) {
+      printf("Unable to receive UDP packet.\n");
+      return 3;
+    }
+    // if the packet is empty, then it's a VM waiting to be connected to, if the
+    // packet is not, it contains the IPv4 of the server to connect to
+    // store endpoint information to pair later
 
-     // fill struct pointer to hold this new client for elements in common to both
-     memset(&new_client, 0, sizeof(struct client));
-     new_client->ipv4 = request_addr.sin_addr.s_addr;
-     new_client->port = request_addr.sin_port;
+    // fill struct pointer to hold this new client for elements in common to both
+    memset(&new_client, 0, sizeof(struct client));
+    new_client->ipv4 = request_addr.sin_addr.s_addr;
+    new_client->port = request_addr.sin_port;
 
-     // if it's a client, it has an IP address of a target as payload
-     if (recv_size > 0) {
-       // copy IP address of taret
-       memcpy(&new_client->target, &recv_buff, (size_t) recv_size);
+    // if it's a client, it has an IP address of a target as payload
+    if (recv_size > 0) {
+      // copy IP address of taret
+      memcpy(&new_client->target, &recv_buff, (size_t) recv_size);
 
-       // create a node for this new client and add it to the linked list
-       if (gll_push_end(client_list, new_client) < 0) {
-         printf("Unable to add client struct to end of client list.\n");
-         return 4;
-       }
-       clients_n++; // increment count
-     }
-     else { // this is a VM waiting for a connection
-       // no payload, create a node for this new vm and add it to the linked list
-       if (gll_push_end(vm_list, new_client) < 0) {
-         printf("Unable to add vm struct to end of vm list.\n");
-         return 5;
-       }
-       vms_n++; // increment count
-     }
+      // create a node for this new client and add it to the linked list
+      if (gll_push_end(client_list, new_client) < 0) {
+        printf("Unable to add client struct to end of client list.\n");
+        return 4;
+      }
+      printf("Received new client pairing request: #%d\n.", clients_n);
+      clients_n++; // increment count
+    }
+    else { // this is a VM waiting for a connection
+      // no payload, create a node for this new vm and add it to the linked list
+      if (gll_push_end(vm_list, new_client) < 0) {
+        printf("Unable to add vm struct to end of vm list.\n");
+        return 5;
+      }
+      printf("Received new VM pairing request: #%d\n.", vms_n);
+      vms_n++; // increment count
+    }
 
-     // check if we have any possible pairing to make
-     // if there is at least 1 VM and 1 client waiting for a pairing
-     if (vms_n > 0 && clients_n > 0) {
-       // loop over each client waiting and see if we can pair anything
+    // check if we have any possible pairing to make
+    // if there is at least 1 VM and 1 client waiting for a pairing
+    if (vms_n > 0 && clients_n > 0) {
+      // loop over each client waiting and see if we can pair anything
       for (i = 0; i < clients_n; i++) {
         // get the target IPv4 of the client data at this node index
         curr_client = gll_find_node(client_list, i);
@@ -171,6 +175,9 @@ int32_t main(int32_t argc, char **argv) {
             // now that we paired the two, we remove them from the request lists
             gll_remove(client_list, i); // remove client
             gll_remove(vm_list, j); // remove VM
+
+            // status message
+            printf("Paired client #%d with VM #%d.\n", i, j);
 
             // and decrease the counts left to connect
             clients_n--;
