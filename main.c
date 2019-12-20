@@ -45,7 +45,7 @@ int32_t main(int32_t argc, char **argv) {
   struct sockaddr_in my_addr, request_addr; // endpoint of server and requests
   char recv_buff[BUFLEN]; // buffer to receive UDP packets
   socklen_t addr_size = sizeof(request_addr); // length of request address struct
-  struct client *new_client; // for the request we received
+  struct client new_client; // for the request we received
   uint32_t target_ipv4; // IPv4 of the vm a client wants to connect to
 
   // linked lists to hold the pairing requests to be fulfilled
@@ -99,29 +99,29 @@ int32_t main(int32_t argc, char **argv) {
 
     // fill struct pointer to hold this new client for elements in common to both
     memset(&new_client, 0, sizeof(struct client));
-    new_client->ipv4 = request_addr.sin_addr.s_addr;
-    new_client->port = request_addr.sin_port;
+    new_client.ipv4 = request_addr.sin_addr.s_addr;
+    new_client.port = request_addr.sin_port;
 
     // if it's a client, it has an IP address of a target as payload
     if (recv_size > 0) {
       // copy IP address of taret
-      memcpy(&new_client->target, &recv_buff, (size_t) recv_size);
+      memcpy(&new_client.target, &recv_buff, (size_t) recv_size);
 
       // create a node for this new client and add it to the linked list
-      if (gll_push_end(client_list, new_client) < 0) {
+      if (gll_push_end(client_list, &new_client) < 0) {
         printf("Unable to add client struct to end of client list.\n");
         return 4;
       }
-      printf("Received new client pairing request: #%d\n.", clients_n);
+      printf("Received new client pairing request: Client #%d.\n", clients_n);
       clients_n++; // increment count
     }
     else { // this is a VM waiting for a connection
       // no payload, create a node for this new vm and add it to the linked list
-      if (gll_push_end(vm_list, new_client) < 0) {
+      if (gll_push_end(vm_list, &new_client) < 0) {
         printf("Unable to add vm struct to end of vm list.\n");
         return 5;
       }
-      printf("Received new VM pairing request: #%d\n.", vms_n);
+      printf("Received new VM pairing request: VM #%d.\n", vms_n);
       vms_n++; // increment count
     }
 
