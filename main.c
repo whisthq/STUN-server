@@ -22,6 +22,12 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
+
+
+
+#include <errno.h>
+
+
 #include "linkedlist.h" // header file for the linked list functions
 
 #define HOLEPUNCH_PORT 48488 // Fractal default holepunch port
@@ -77,6 +83,11 @@ int32_t main(int32_t argc, char **argv) {
   // bind the listensocket to our server address
   if (bind(punch_socket, (struct sockaddr *) &my_addr, sizeof(my_addr)) < 0) {
     printf("Unable to bound socket to port %d.\n", HOLEPUNCH_PORT);
+
+
+    printf("Error from errno is %d\n", errno);
+
+
     return 2;
   }
   printf("UDP socket bound to port %d.\n", HOLEPUNCH_PORT);
