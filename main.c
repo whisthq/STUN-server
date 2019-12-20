@@ -46,6 +46,7 @@ int32_t main(int32_t argc, char **argv) {
   char recv_buff[BUFLEN]; // buffer to receive UDP packets
   socklen_t addr_size = sizeof(request_addr); // length of request address struct
   struct client *new_client; // for the request we received
+  uint32_t target_ipv4; // IPv4 of the vm a client wants to connect to
 
   // linked lists to hold the pairing requests to be fulfilled
   struct gll_t *client_list = gll_init();
@@ -100,7 +101,7 @@ int32_t main(int32_t argc, char **argv) {
      // if it's a client, it has an IP address of a target as payload
      if (recv_size > 0) {
        // copy IP address of taret
-       memcpy(&new_client->target, &recv_buff, (ssize_t) recv_size);
+       memcpy(&new_client->target, &recv_buff, (size_t) recv_size);
 
        // create a node for this new client and add it to the linked list
        if (gll_push_end(client_list, new_client) < 0) {
@@ -126,13 +127,16 @@ int32_t main(int32_t argc, char **argv) {
         // get the target IPv4 of the client data at this node index
         curr_client = gll_find_node(client_list, i);
 
+        // get the target IP of that client in network byte format
+        target_ipv4 = htonl((char *) curr_client->data->target);
+
         // for a specific client, loop over all VMs to see if target IP match
         for (j = 0; j < vms_n; j++) {
           // get the IPv4 of the client data at this node index
           curr_vm = gll_find_node(vm_list, j);
 
           // if the client wants to connect to this VM, we send their endpoints
-          if ((char *) curr_client->data->target == (char *) curr_vm->data->ipv4) {
+          if (target_ipv4 == curr_vm->data->ipv4) {
             // we send memory to avoid endianness byte issue
             memcpy(client_endpoint, &curr_client->data, sizeof(struct client));
             memcpy(vm_endpoint, &curr_vm->data, sizeof(struct client));
