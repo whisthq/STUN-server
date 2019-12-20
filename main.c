@@ -53,7 +53,7 @@ int32_t main(int32_t argc, char **argv) {
   int i, j, clients_n = 0, vms_n = 0; // counter vars
 
   // linked list nodes for sending endpoint data
-  struct gll_node_t *curr_client, curr_vm;
+  struct gll_node_t *curr_client, *curr_vm;
 
   // endpoints to send over the sockets for pairing
   unsigned char client_endpoint[sizeof(struct client)]; // client
