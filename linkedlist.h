@@ -12,6 +12,8 @@
  * Copyright Fractal Computers, Inc. 2019
 **/
 
+#include <stdint.h>
+
 #define BUFLEN 128 // to hold the target IPv4
 
 // simple struct to hold the client endpoints
