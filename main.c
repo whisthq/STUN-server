@@ -79,18 +79,20 @@ int32_t main(int32_t argc, char **argv) {
     printf("Unable to bound socket to port %d.\n", HOLEPUNCH_PORT);
     return 2;
   }
-  printf("UDP socket bound to port %d\n.", HOLEPUNCH_PORT);
+  printf("UDP socket bound to port %d.\n", HOLEPUNCH_PORT);
 
   // loop forever to keep connecting VM-client pairs
   while (1) {
     // empty memory for request address
     memset(&request_addr, 0, sizeof(request_addr));
 
+    printf("Waiting for connection request...\n");
     // receive a UDP packet for a connection request
     if ((recv_size = recvfrom(punch_socket, recv_buff, BUFLEN, 0, (struct sockaddr *) &request_addr, &addr_size)) < 0) {
       printf("Unable to receive UDP packet.\n");
       return 3;
     }
+    printf("Connection request received!\n");
     // if the packet is empty, then it's a VM waiting to be connected to, if the
     // packet is not, it contains the IPv4 of the server to connect to
     // store endpoint information to pair later
