@@ -41,7 +41,7 @@ int32_t main(int32_t argc, char **argv) {
 
   // hole punching server variables
   int punch_socket; // socket ID
-  size_t recv_size; // received packets size
+  ssize_t recv_size; // received packets size
   struct sockaddr_in my_addr, request_addr; // endpoint of server and requests
   char recv_buff[BUFLEN]; // buffer to receive UDP packets
   socklen_t addr_size = sizeof(request_addr); // length of request address struct
@@ -100,7 +100,7 @@ int32_t main(int32_t argc, char **argv) {
      // if it's a client, it has an IP address of a target as payload
      if (recv_size > 0) {
        // copy IP address of taret
-       memcpy(&new_client->target, &recv_buff, recv_size);
+       memcpy(&new_client->target, &recv_buff, (ssize_t) recv_size);
 
        // create a node for this new client and add it to the linked list
        if (gll_push_end(client_list, new_client) < 0) {
