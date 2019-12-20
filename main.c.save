@@ -45,8 +45,8 @@ int32_t main(int32_t argc, char **argv) {
   struct sockaddr_in my_addr, request_addr; // endpoint of server and requests
   char recv_buff[BUFLEN]; // buffer to receive UDP packets
   socklen_t addr_size = sizeof(request_addr); // length of request address struct
-  struct client new_client; // for the request we received
-  uint32_t curr_client_target_ipv4, curr_vm_ipv4; // IPv4 of vm, client compared for match
+  struct client *new_client; // for the request we received
+  uint32_t target_ipv4; // IPv4 of the vm a client wants to connect to
 
   // linked lists to hold the pairing requests to be fulfilled
   struct gll_t *client_list = gll_init();
@@ -86,41 +86,60 @@ int32_t main(int32_t argc, char **argv) {
     // empty memory for request address
     memset(&request_addr, 0, sizeof(request_addr));
 
-    printf("Waiting for connection requests...\n");
+    printf("Waiting for connection request...\n");
     // receive a UDP packet for a connection request
     if ((recv_size = recvfrom(punch_socket, recv_buff, BUFLEN, 0, (struct sockaddr *) &request_addr, &addr_size)) < 0) {
       printf("Unable to receive UDP packet.\n");
       return 3;
     }
+    printf("Connection request received!\n");
     // if the packet is empty, then it's a VM waiting to be connected to, if the
     // packet is not, it contains the IPv4 of the server to connect to
     // store endpoint information to pair later
 
+
+
+
+
+
+
+
     // fill struct pointer to hold this new client for elements in common to both
     memset(&new_client, 0, sizeof(struct client));
-    new_client.ipv4 = request_addr.sin_addr.s_addr;
-    new_client.port = request_addr.sin_port;
+    new_client->ipv4 = request_addr.sin_addr.s_addr;
+    new_client->port = request_addr.sin_port;
+
+
+    printf("received size: %d\n", recv_size);
+
 
     // if it's a client, it has an IP address of a target as payload
     if (recv_size > 0) {
+
+      printf("tosti\n");
+
       // copy IP address of taret
-      memcpy(&new_client.target, &recv_buff, (size_t) recv_size);
+      memcpy(&new_client->target, &recv_buff, (size_t) recv_size);
+
+
+      printf("swaaap\n");
+
 
       // create a node for this new client and add it to the linked list
-      if (gll_push_end(client_list, &new_client) < 0) {
+      if (gll_push_end(client_list, new_client) < 0) {
         printf("Unable to add client struct to end of client list.\n");
         return 4;
       }
-      printf("Received new client pairing request: Client #%d.\n", clients_n);
+      printf("Received new client pairing request: #%d\n.", clients_n);
       clients_n++; // increment count
     }
     else { // this is a VM waiting for a connection
       // no payload, create a node for this new vm and add it to the linked list
-      if (gll_push_end(vm_list, &new_client) < 0) {
+      if (gll_push_end(vm_list, new_client) < 0) {
         printf("Unable to add vm struct to end of vm list.\n");
         return 5;
       }
-      printf("Received new VM pairing request: VM #%d.\n", vms_n);
+      printf("Received new VM pairing request: #%d\n.", vms_n);
       vms_n++; // increment count
     }
 
@@ -129,32 +148,20 @@ int32_t main(int32_t argc, char **argv) {
     if (vms_n > 0 && clients_n > 0) {
       // loop over each client waiting and see if we can pair anything
       for (i = 0; i < clients_n; i++) {
-        // get the node  of the client data at this node index
+        // get the target IPv4 of the client data at this node index
         curr_client = gll_find_node(client_list, i);
 
-        // get the target IPv4 of that client in network byte format
-        curr_client_target_ipv4 = htonl(atoi(curr_client->data->target));
-
-
-	printf("Curr_client_target_ipv4: %d\n", curr_client_target_ipv4);
+        // get the target IP of that client in network byte format
+        target_ipv4 = htonl(atoi(curr_client->data->target));
 
         // for a specific client, loop over all VMs to see if target IP match
         for (j = 0; j < vms_n; j++) {
-          // get the node of the client data at this node index
+          // get the IPv4 of the client data at this node index
           curr_vm = gll_find_node(vm_list, j);
 
-          // get the IPv4 of that VM in network byte format
-          curr_vm_ipv4 = htonl(curr_vm->data->ipv4);
-
-	  printf("curr_vm_ipv4: %d\n", curr_vm_ipv4);
-
           // if the client wants to connect to this VM, we send their endpoints
-          if (curr_client_target_ipv4 == curr_vm_ipv4) {
-           
-
-		printf("matched correctly??\n");
-
- // we send memory to avoid endianness byte issue
+          if (target_ipv4 == curr_vm->data->ipv4) {
+            // we send memory to avoid endianness byte issue
             memcpy(client_endpoint, &curr_client->data, sizeof(struct client));
             memcpy(vm_endpoint, &curr_vm->data, sizeof(struct client));
 
