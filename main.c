@@ -128,7 +128,7 @@ int32_t main(int32_t argc, char **argv) {
         curr_client = gll_find_node(client_list, i);
 
         // get the target IP of that client in network byte format
-        target_ipv4 = (uint32_t) htonl((uint32_t) curr_client->data->target);
+        target_ipv4 = htonl((uint32_t) curr_client->data->target);
 
         // for a specific client, loop over all VMs to see if target IP match
         for (j = 0; j < vms_n; j++) {

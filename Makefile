@@ -20,7 +20,7 @@ WARNINGS = \
   -Winline \
   -Wno-long-long \
   -Wuninitialized \
-  -Wconversion
+  -Wno-conversion
 
 # C warnings
 CWARNINGS := $(WARNINGS) \
