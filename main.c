@@ -5,7 +5,7 @@
  *
  * Hole Punching Server version: 1.0
  *
- * Last modification: 12/18/2019
+ * Last modification: 12/19/2019
  *
  * By: Philippe Noël
  *
@@ -45,11 +45,20 @@ int32_t main(int32_t argc, char **argv) {
   struct sockaddr_in my_addr, request_addr; // endpoint of server and requests
   char recv_buff[BUFLEN]; // buffer to receive UDP packets
   socklen_t addr_size = sizeof(request_addr); // length of request address struct
+  struct client *new_client; // for the request we received
 
   // linked lists to hold the pairing requests to be fulfilled
   struct gll_t *client_list = gll_init();
   struct gll_t *vm_list = gll_init();
   int i, j, clients_n = 0, vms_n = 0; // counter vars
+
+  // linked list nodes for sending endpoint data
+  struct gll_node_t *curr_client, curr_vm;
+
+  // endpoints to send over the sockets for pairing
+  unsigned char client_endpoint[sizeof(struct client)]; // client
+  unsigned char vm_endpoint[sizeof(struct client)]; // vm
+  struct sockaddr_in client_addr, vm_addr; // addresses to send to
 
   // create listening socket listening for VM-client pairs to connect
   if ((punch_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < -1) {
@@ -79,15 +88,17 @@ int32_t main(int32_t argc, char **argv) {
        printf("Unable to receive UDP packet.\n");
        return 3;
      }
-
      // if the packet is empty, then it's a VM waiting to be connected to, if the
      // packet is not, it contains the IPv4 of the server to connect to
      // store endpoint information to pair later
+
+     // fill struct pointer to hold this new client for elements in common to both
+     new_client->ipv4 = request_addr.sin_addr.s_addr;
+     new_client->port = request_addr.sin_port;
+
+     // if it's a client, it has an IP address of a target as payload
      if (recv_size > 0) {
-       // create and fill struct pointer to hold this new client
-       struct client *new_client;
-       new_client->ipv4 = request_addr.sin_addr.s_addr;
-       new_client->port = request_addr.sin_port;
+       // copy IP address of taret
        memcpy(&new_client->target, &recv_buff, recv_size);
 
        // create a node for this new client and add it to the linked list
@@ -98,14 +109,8 @@ int32_t main(int32_t argc, char **argv) {
        clients_n++; // increment count
      }
      else { // this is a VM waiting for a connection
-       // create and fill struct pointer to hold this new vm
-       struct client *new_vm;
-       new_vm->ipv4 = request_addr.sin_addr.s_addr;
-       new_vm->port = request_addr.sin_port;
-       // don't add anything for the buffer
-
-       // create a node for this new vm and add it to the linked list
-       if (gll_push_end(vm_list, new_vm) < 0) {
+       // no payload, create a node for this new vm and add it to the linked list
+       if (gll_push_end(vm_list, new_client) < 0) {
          printf("Unable to add vm struct to end of vm list.\n");
          return 5;
        }
@@ -118,25 +123,20 @@ int32_t main(int32_t argc, char **argv) {
        // loop over each client waiting and see if we can pair anything
       for (i = 0; i < clients_n; i++) {
         // get the target IPv4 of the client data at this node index
-        struct gll_node_t *curr_client = gll_find_node(client_list, i);
+        curr_client = gll_find_node(client_list, i);
 
         // for a specific client, loop over all VMs to see if target IP match
         for (j = 0; j < vms_n; j++) {
           // get the IPv4 of the client data at this node index
-          struct gll_node_t* curr_vm = gll_find_node(vm_list, j);
+          curr_vm = gll_find_node(vm_list, j);
 
           // if the client wants to connect to this VM, we send their endpoints
           if ((char *) curr_client->data->target == (char *) curr_vm->data->ipv4) {
             // we send memory to avoid endianness byte issue
-            // create arrays to hold this memory and copy it over
-            unsigned char client_endpoint[sizeof(struct client)]; // client
             memcpy(client_endpoint, &curr_client->data, sizeof(struct client));
-
-            unsigned char vm_endpoint[sizeof(struct client)]; // vm
             memcpy(vm_endpoint, &curr_vm->data, sizeof(struct client));
 
-            // create structs for address to send to
-            struct sockaddr_in client_addr, vm_addr;
+            // set memory of  structs for address to send to
             memset(&client_addr, 0, sizeof(client_addr));
             memset(&vm_addr, 0, sizeof(vm_addr));
 
