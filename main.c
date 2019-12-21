@@ -22,6 +22,12 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
+
+
+#include <errno.h>
+
+
+
 #include "linkedlist.h" // header file for the linked list functions
 
 #define BUFLEN 128 // len of receive buffer
@@ -210,6 +216,10 @@ int32_t main(int32_t argc, char **argv) {
             // send the endpoint of the client to the VM
             if (sendto(punch_socket, client_endpoint, sizeof(struct client), 0, (struct sockaddr *) &vm_addr, addr_size) < 0) {
               printf("Unable to send client endpoint to VM.\n");
+
+
+              printf("errno: %d\n", errno);
+
               return 7;
             }
 
