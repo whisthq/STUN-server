@@ -88,17 +88,13 @@ int32_t main(int32_t argc, char **argv) {
   }
   printf("UDP socket bound to port %d.\n", HOLEPUNCH_PORT);
 
-  // set the socket to permit broadcast addresses, as those behind NATs can be
-  // considered as broadcast addresses because of the nature of the NAT
-  if (setsockopt(punch_socket, SOL_SOCKET, SO_BROADCAST, &(int) {1}, sizeof(int)) < 0) {
-    printf("Unable to set socket to broadcast.\n");
-    return 3;
-  }
-
   // loop forever to keep connecting VM-client pairs
   while (1) {
     // empty memory for request address
     memset(&request_addr, 0, sizeof(request_addr));
+    memset(&tmp, 0, 128); // and for tmp buffer to avoid garbage init memory in memcpy
+    memset(&recv_buff, 0, BUFLEN); // and recv buffer
+    recv_size = 0;
 
     printf("Waiting for connection requests...\n");
     // receive a UDP packet with the IPv4 address of the sender to act as a
@@ -123,12 +119,27 @@ int32_t main(int32_t argc, char **argv) {
     memset(&new_client, 0, sizeof(struct client));
     new_client.port = request_addr.sin_port; // port stays intact through NAT
 
+
+	printf("recvbuff: %s\n", recv_buff);
+
     // copy the IPv4 and store into our client struct
-    memcpy(&tmp, &recv_buff, recv_size - 1); // copy the IPv4 of the sender without the tag
+    memcpy(&tmp, &recv_buff, recv_size - 1);
+
+	printf("memcpied: %s\n", tmp);
+ // copy the IPv4 of the sender without the tag
     new_client.ipv4 = inet_addr(tmp); // convert to network byte order
+
+
+   printf("newclientipv4: %d\n", new_client.ipv4);
+
 
     // it's a client if it has a "C" tag at the last position in the recv_buff
     if (recv_buff[recv_size - 1] == 'C') {
+      // empty memory of buffers for next use
+      memset(&recv_buff, 0, BUFLEN);
+      memset(&tmp, 0, 128);
+      recv_size = 0;
+
       // a client also needs to send the IPv4 of the VM it wants to be paired
       // with, which it obtained through authenticating, so we receive another
       // packet containing the target IPv4
@@ -145,9 +156,22 @@ int32_t main(int32_t argc, char **argv) {
       }
       printf("Sent target IPv4 receipt acknowledgement to the local client.\n");
 
+
+
+	printf("received ip is: %s\n", recv_buff);
+
+
       // copy the target IPv4 and store into our client struct
       memcpy(&tmp, &recv_buff, recv_size); // copy the target IPv4, no tag this time
-      new_client.target_ipv4 = inet_addr(tmp); // convert to network byte order
+     
+
+	printf("memcpied ip: %s\n", tmp);
+
+ new_client.target_ipv4 = inet_addr(tmp); // convert to network byte order
+
+
+	printf("newclient saved ipv4: %d\n", new_client.target_ipv4);
+
 
       // create a node for this new client and add it to the linked list
       if (gll_push_end(client_list, &new_client) < 0) {
@@ -187,6 +211,12 @@ int32_t main(int32_t argc, char **argv) {
           // get the IPv4 of that VM in network byte format
           curr_vm_ipv4 = curr_vm->data->ipv4;
 
+
+
+	printf("currclienttargetipv4: %d\n", curr_client->data->target_ipv4);
+	printf("currvmpiv4: %d\n", curr_vm->data->ipv4);
+
+
           // if the client wants to connect to this VM, we send their endpoints
           if (curr_client_target_ipv4 == curr_vm_ipv4) {
             // we send memory to avoid endianness byte issue
@@ -195,7 +225,8 @@ int32_t main(int32_t argc, char **argv) {
 
 
 
-
+		printf("currclientport: %d\n", curr_client->data->port);
+		printf("currclientipv4: %d\n", curr_client->data->ipv4);
 
 
 
