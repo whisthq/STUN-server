@@ -167,13 +167,13 @@ int32_t main(int32_t argc, char **argv) {
 
             // fill client address struct
             client_addr.sin_family = AF_INET;
-            client_addr.sin_port = htons(curr_client->data->port);
-            client_addr.sin_addr.s_addr = htonl(curr_client->data->ipv4);
+            client_addr.sin_port = curr_client->data->port;
+            client_addr.sin_addr.s_addr = curr_client->data->ipv4;
 
             // fill VM address struct
             vm_addr.sin_family = AF_INET;
-            vm_addr.sin_port = htons(curr_vm->data->port);
-            vm_addr.sin_addr.s_addr = htonl(curr_vm->data->ipv4);
+            vm_addr.sin_port = curr_vm->data->port;
+            vm_addr.sin_addr.s_addr = curr_vm->data->ipv4;
 
             // send the endpoint of the client to the VM
             if (sendto(punch_socket, &client_endpoint, sizeof(struct client), 0, (struct sockaddr *) &vm_addr, addr_size) < 0) {
