@@ -52,12 +52,12 @@ struct gll_node_t *gll_find_node(struct gll_t *list, int pos) {
 
   // decide where to start iterating from (font or back of the list)
   if (pos > ((list->size - 1) / 2)) {
-    reverse  = 1;
-    currPos  = list->size - 1;
+    reverse = 1;
+    currPos = list->size - 1;
     currNode = list->last;
   } else {
-    reverse  = 0;
-    currPos  = 0;
+    reverse = 0;
+    currPos = 0;
     currNode = list->first;
   }
 

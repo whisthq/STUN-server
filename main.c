@@ -93,22 +93,29 @@ int32_t main(int32_t argc, char **argv) {
       return 3;
     }
 
-    // each packet contains an IP address in network byte order
-    // for the VM, it contains its own IP, for the client is contains the IP of
-    // the VM it wants to connect to, obtained by authenticating
-    // after the IPv4, which is 8 characters, we put a token to tell whether this
-    // is from a client ("C") or a server ("S")
+    // each packet contains an IP address in "x.x.x.x" format, a packet from a
+    // local client containing first the client IP and the associated VM IP
+    // separated by a "|", like "x.x.x.x|y.y.y.y", while a packet from a VM only
+    // contains its own IP address, with a single address being 8 characters
+
+    // tmp buffer to store copied mem
+    char tmp[128];
 
     // fill struct pointer to hold this new client
     memset(&new_client, 0, sizeof(struct client));
-    new_client.ipv4 = request_addr.sin_addr.s_addr;
-    new_client.port = request_addr.sin_port;
+    new_client.port = request_addr.sin_port; // port stays intact through NAT
 
-    // copy IP address of target, recv_size - 1 to only copy IP, not token
-    memcpy(&new_client.target, &recv_buff, (size_t) recv_size - 1);
+    // first 8 characters are the sender's IP address
+    memcpy(&tmp, &recv_buffer, (size_t) 8); // copy just the first 8 chars
+    new_client.ipv4 = inet_addr(tmp);
 
-    // it's a client if it has a 'C' after its IPv4 in the payload
-    if (recv_buffer[8] == 'C') {
+    // it's a client if it has a receive size of over 10 (two IPs)
+    if (recv_size > 10) {
+      // second half, past the delimitor, is the target VM IPv4
+      // this is super weird but you can iterate on C char/int arrays this way
+      memcpy(&tmp, &recv_buffer + 9, (size_t) 8);
+      new_client.target_ipv4 = inet_addr(tmp);
+
       // create a node for this new client and add it to the linked list
       if (gll_push_end(client_list, &new_client) < 0) {
         printf("Unable to add client struct to end of client list.\n");
@@ -117,7 +124,8 @@ int32_t main(int32_t argc, char **argv) {
       printf("Received new client pairing request: Client #%d.\n", clients_n);
       clients_n++; // increment count
     }
-    else { // this is a VM waiting for a connection
+    // this is a VM waiting for a connection
+    else {
       // create a node for this new vm and add it to the linked list
       if (gll_push_end(vm_list, &new_client) < 0) {
         printf("Unable to add vm struct to end of vm list.\n");
@@ -136,7 +144,7 @@ int32_t main(int32_t argc, char **argv) {
         curr_client = gll_find_node(client_list, i);
 
         // get the target IPv4 of that client in network byte format
-        curr_client_target_ipv4 = inet_addr(curr_client->data->target);
+        curr_client_target_ipv4 = curr_client->data->target_ipv4;
 
         // for a specific client, loop over all VMs to see if target IP match
         for (j = 0; j < vms_n; j++) {

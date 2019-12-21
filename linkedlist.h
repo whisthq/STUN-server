@@ -5,7 +5,7 @@
  *
  * Hole Punching Server version: 1.0
  *
- * Last modification: 12/19/2019
+ * Last modification: 12/20/2019
  *
  * By: Philippe Noël
  *
@@ -14,13 +14,11 @@
 
 #include <stdint.h>
 
-#define BUFLEN 128 // to hold the target IPv4
-
 // simple struct to hold the client endpoints
 struct client {
   uint32_t ipv4; // IPv4 of the client to connect to another client
   uint16_t port; // port of the client to connect to another client
-  char target[BUFLEN]; // IPv4 of the VM to connect to if this is a local device
+  uint32_t target_ipv4; // IPv4 of the VM to connect to if this is a local device
 };
 
 // generic linked list node type
