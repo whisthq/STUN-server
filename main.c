@@ -82,6 +82,13 @@ int32_t main(int32_t argc, char **argv) {
   }
   printf("UDP socket bound to port %d.\n", HOLEPUNCH_PORT);
 
+  // set the socket to permit broadcast addresses, as those behind NATs can be
+  // considered as broadcast addresses because of the nature of the NAT
+  if (setsockopt(punch_socket, SOL_SOCKET, SO_BROADCAST, &(int) {1}, sizeof(int)) < 0) {
+    printf("Unable to set socket to broadcast.\n");
+    return 3;
+  }
+
   // loop forever to keep connecting VM-client pairs
   while (1) {
     // empty memory for request address
@@ -91,7 +98,7 @@ int32_t main(int32_t argc, char **argv) {
     // receive a UDP packet for a connection request
     if ((recv_size = recvfrom(punch_socket, recv_buff, BUFLEN, 0, (struct sockaddr *) &request_addr, &addr_size)) < 0) {
       printf("Unable to receive UDP packet.\n");
-      return 3;
+      return 4;
     }
 
     // each packet contains an IP address in "x.x.x.x" format, a packet from a
@@ -120,7 +127,7 @@ int32_t main(int32_t argc, char **argv) {
       // create a node for this new client and add it to the linked list
       if (gll_push_end(client_list, &new_client) < 0) {
         printf("Unable to add client struct to end of client list.\n");
-        return 4;
+        return 5;
       }
       printf("Received new client pairing request: Client #%d.\n", clients_n);
       clients_n++; // increment count
@@ -130,7 +137,7 @@ int32_t main(int32_t argc, char **argv) {
       // create a node for this new vm and add it to the linked list
       if (gll_push_end(vm_list, &new_client) < 0) {
         printf("Unable to add vm struct to end of vm list.\n");
-        return 5;
+        return 6;
       }
       printf("Received new VM pairing request: VM #%d.\n", vms_n);
       vms_n++; // increment count
@@ -178,13 +185,13 @@ int32_t main(int32_t argc, char **argv) {
             // send the endpoint of the client to the VM
             if (sendto(punch_socket, &client_endpoint, sizeof(struct client), 0, (struct sockaddr *) &vm_addr, addr_size) < 0) {
               printf("Unable to send client endpoint to VM.\n");
-              return 6;
+              return 7;
             }
 
             // send the endpoint of the vm to the client
             if (sendto(punch_socket, &vm_endpoint, sizeof(struct client), 0, (struct sockaddr *) &client_addr, addr_size) < 0) {
               printf("Unable to send VM endpoint to client.\n");
-              return 7;
+              return 8;
             }
             // the two are now paired and can start communicating over UDP
 
