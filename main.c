@@ -44,7 +44,7 @@ int32_t main(int32_t argc, char **argv) {
   int punch_socket; // socket ID
   ssize_t recv_size; // received packets size
   struct sockaddr_in my_addr, request_addr; // endpoint of server and requests
-  char recv_buff[BUFLEN]; // buffer to receive UDP packets
+  char recv_buff[BUFLEN], tmp[128]; // buffer to receive UDP packets and tmp store for memcpy
   socklen_t addr_size = sizeof(request_addr); // length of request address struct
   struct client new_client; // for the request we received
   uint32_t curr_client_target_ipv4, curr_vm_ipv4; // IPv4 of vm, client compared for match
@@ -82,47 +82,55 @@ int32_t main(int32_t argc, char **argv) {
   }
   printf("UDP socket bound to port %d.\n", HOLEPUNCH_PORT);
 
-  // set the socket to permit broadcast addresses, as those behind NATs can be
-  // considered as broadcast addresses because of the nature of the NAT
-  if (setsockopt(punch_socket, SOL_SOCKET, SO_BROADCAST, &(int) {1}, sizeof(int)) < 0) {
-    printf("Unable to set socket to broadcast.\n");
-    return 3;
-  }
-
   // loop forever to keep connecting VM-client pairs
   while (1) {
     // empty memory for request address
     memset(&request_addr, 0, sizeof(request_addr));
 
     printf("Waiting for connection requests...\n");
-    // receive a UDP packet for a connection request
+    // receive a UDP packet with the IPv4 address of the sender to act as a
+    // connection request with a tag to indicate whether this is from a client
+    // or a VM. The packet format is "x.x.x.xT", where T = C is this is a local
+    // client, and V if it is from a VM
     if ((recv_size = recvfrom(punch_socket, recv_buff, BUFLEN, 0, (struct sockaddr *) &request_addr, &addr_size)) < 0) {
-      printf("Unable to receive UDP packet.\n");
+      printf("Unable to receive connection-request UDP packet.\n");
       return 4;
     }
 
-    // each packet contains an IP address in "x.x.x.x" format, a packet from a
-    // local client containing first the client IP and the associated VM IP
-    // separated by a "|", like "x.x.x.x|y.y.y.y", while a packet from a VM only
-    // contains its own IP address, with a single address being 8 characters
-
-    // tmp buffer to store copied mem
-    char tmp[128];
+    // acknowledge receipt of the packet to ensure we can re-send if the packet
+    // failed, since this is UDP, we just send an empty packet
+    if (sendto(punch_socket, "", 0, 0, (struct sockaddr *) &request_addr, addr_size) < 0) {
+      printf("Unable to send connection receipt acknowledgment UDP packet.\n");
+      return 5;
+    }
 
     // fill struct pointer to hold this new client
     memset(&new_client, 0, sizeof(struct client));
     new_client.port = request_addr.sin_port; // port stays intact through NAT
 
-    // first 8 characters are the sender's IP address
-    memcpy(&tmp, &recv_buff, (size_t) 8); // copy just the first 8 chars
-    new_client.ipv4 = inet_addr(tmp);
+    // copy the IPv4 and store into our client struct
+    memcpy(&tmp, &recv_buff, recv_size - 1); // copy the IPv4 of the sender without the tag
+    new_client.ipv4 = inet_addr(tmp); // convert to network byte order
 
-    // it's a client if it has a receive size of over 10 (two IPs)
-    if (recv_size > 10) {
-      // second half, past the delimitor, is the target VM IPv4
-      // this is super weird but you can iterate on C char/int arrays this way
-      memcpy(&tmp, &recv_buff + 9, (size_t) 8);
-      new_client.target_ipv4 = inet_addr(tmp);
+    // it's a client if it has a "C" tag at the last position in the recv_buff
+    if (recv_buffer[recv_size - 1] == 'C') {
+      // a client also needs to send the IPv4 of the VM it wants to be paired
+      // with, which it obtained through authenticating, so we receive another
+      // packet containing the target IPv4
+      if ((recv_size = recvfrom(punch_socket, recv_buff, BUFLEN, 0, (struct sockaddr *) &request_addr, &addr_size)) < 0) {
+        printf("Unable to receive client target IPv4 UDP packet.\n");
+        return 6;
+      }
+
+      // acknowledge receipt again to make sure we can send it again if necessary
+      if (sendto(punch_socket, "", 0, 0, (struct sockaddr *) &request_addr, addr_size) < 0) {
+        printf("Unable to send target IPv4 receipt acknowledgment UDP packet.\n");
+        return 7;
+      }
+
+      // copy the target IPv4 and store into our client struct
+      memcpy(&tmp, &recv_buff, recv_size); // copy the target IPv4, no tag this time
+      new_client.target_ipv4 = inet_addr(tmp); // convert to network byte order
 
       // create a node for this new client and add it to the linked list
       if (gll_push_end(client_list, &new_client) < 0) {
@@ -132,7 +140,7 @@ int32_t main(int32_t argc, char **argv) {
       printf("Received new client pairing request: Client #%d.\n", clients_n);
       clients_n++; // increment count
     }
-    // this is a VM waiting for a connection
+    // this is a VM waiting for a connection, no need to receive anything else
     else {
       // create a node for this new vm and add it to the linked list
       if (gll_push_end(vm_list, &new_client) < 0) {
@@ -174,22 +182,22 @@ int32_t main(int32_t argc, char **argv) {
 
             // fill client address struct
             client_addr.sin_family = AF_INET;
-            client_addr.sin_port = curr_client->data->port;
-            client_addr.sin_addr.s_addr = curr_client->data->ipv4;
+            client_addr.sin_port = curr_client->data->port; // already in network byte order
+            client_addr.sin_addr.s_addr = curr_client->data->ipv4; // already in network byte order
 
             // fill VM address struct
             vm_addr.sin_family = AF_INET;
-            vm_addr.sin_port = curr_vm->data->port;
-            vm_addr.sin_addr.s_addr = curr_vm->data->ipv4;
+            vm_addr.sin_port = curr_vm->data->port; // already in network byte order
+            vm_addr.sin_addr.s_addr = curr_vm->data->ipv4; // already in network byte order
 
             // send the endpoint of the client to the VM
-            if (sendto(punch_socket, &client_endpoint, sizeof(struct client), 0, (struct sockaddr *) &vm_addr, addr_size) < 0) {
+            if (sendto(punch_socket, client_endpoint, sizeof(struct client), 0, (struct sockaddr *) &vm_addr, addr_size) < 0) {
               printf("Unable to send client endpoint to VM.\n");
               return 7;
             }
 
             // send the endpoint of the vm to the client
-            if (sendto(punch_socket, &vm_endpoint, sizeof(struct client), 0, (struct sockaddr *) &client_addr, addr_size) < 0) {
+            if (sendto(punch_socket, vm_endpoint, sizeof(struct client), 0, (struct sockaddr *) &client_addr, addr_size) < 0) {
               printf("Unable to send VM endpoint to client.\n");
               return 8;
             }
