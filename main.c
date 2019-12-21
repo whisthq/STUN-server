@@ -82,6 +82,13 @@ int32_t main(int32_t argc, char **argv) {
   }
   printf("UDP socket bound to port %d.\n", HOLEPUNCH_PORT);
 
+  // set the socket to permit broadcast addresses, as those behind NATs can be
+  // considered as broadcast addresses because of the nature of the NAT
+  if (setsockopt(punch_socket, SOL_SOCKET, SO_BROADCAST, &(int) {1}, sizeof(int)) < 0) {
+    printf("Unable to set socket to broadcast.\n");
+    return 3;
+  }
+
   // loop forever to keep connecting VM-client pairs
   while (1) {
     // empty memory for request address
@@ -179,6 +186,12 @@ int32_t main(int32_t argc, char **argv) {
             // we send memory to avoid endianness byte issue
             memcpy(client_endpoint, &curr_client->data, sizeof(struct client));
             memcpy(vm_endpoint, &curr_vm->data, sizeof(struct client));
+
+
+
+
+
+
 
             // set memory of  structs for address to send to
             memset(&client_addr, 0, sizeof(client_addr));
