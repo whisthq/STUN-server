@@ -96,13 +96,15 @@ int32_t main(int32_t argc, char **argv) {
       printf("Unable to receive connection-request UDP packet.\n");
       return 4;
     }
+    printf("Received connection request from a client.\n");
 
     // acknowledge receipt of the packet to ensure we can re-send if the packet
     // failed, since this is UDP, we just send an empty packet
     if (sendto(punch_socket, "", 0, 0, (struct sockaddr *) &request_addr, addr_size) < 0) {
-      printf("Unable to send connection receipt acknowledgment UDP packet.\n");
+      printf("Unable to send connection receipt acknowledgement UDP packet.\n");
       return 5;
     }
+    printf("Sent connection receipt acknowledgement to the client.\n");
 
     // fill struct pointer to hold this new client
     memset(&new_client, 0, sizeof(struct client));
@@ -121,12 +123,14 @@ int32_t main(int32_t argc, char **argv) {
         printf("Unable to receive client target IPv4 UDP packet.\n");
         return 6;
       }
+      printf("Received the local client target VM IPv4 request.\n");
 
       // acknowledge receipt again to make sure we can send it again if necessary
       if (sendto(punch_socket, "", 0, 0, (struct sockaddr *) &request_addr, addr_size) < 0) {
         printf("Unable to send target IPv4 receipt acknowledgment UDP packet.\n");
         return 7;
       }
+      printf("Sent target IPv4 receipt acknowledgement to the local client.\n");
 
       // copy the target IPv4 and store into our client struct
       memcpy(&tmp, &recv_buff, recv_size); // copy the target IPv4, no tag this time
