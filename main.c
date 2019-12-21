@@ -24,6 +24,7 @@
 
 #include "linkedlist.h" // header file for the linked list functions
 
+#define BUFLEN 128 // len of receive buffer
 #define HOLEPUNCH_PORT 48488 // Fractal default holepunch port
 #define QUEUE_LEN 50 // arbitrary, at most 50 concurrent pairing requests
 
@@ -106,14 +107,14 @@ int32_t main(int32_t argc, char **argv) {
     new_client.port = request_addr.sin_port; // port stays intact through NAT
 
     // first 8 characters are the sender's IP address
-    memcpy(&tmp, &recv_buffer, (size_t) 8); // copy just the first 8 chars
+    memcpy(&tmp, &recv_buff, (size_t) 8); // copy just the first 8 chars
     new_client.ipv4 = inet_addr(tmp);
 
     // it's a client if it has a receive size of over 10 (two IPs)
     if (recv_size > 10) {
       // second half, past the delimitor, is the target VM IPv4
       // this is super weird but you can iterate on C char/int arrays this way
-      memcpy(&tmp, &recv_buffer + 9, (size_t) 8);
+      memcpy(&tmp, &recv_buff + 9, (size_t) 8);
       new_client.target_ipv4 = inet_addr(tmp);
 
       // create a node for this new client and add it to the linked list
