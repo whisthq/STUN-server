@@ -158,7 +158,7 @@ int32_t main(int32_t argc, char **argv) {
       memset(&new_vm, 0, sizeof(struct client));
 
       // port stays intact through NAT, just copy it
-      new_client.port = request_addr.sin_port;
+      new_vm.port = request_addr.sin_port;
 
       // copy the IPv4 and store into our client struct
       memcpy(&tmp, &recv_buff, recv_size - 1); // copy without tag
@@ -212,6 +212,9 @@ int32_t main(int32_t argc, char **argv) {
         		printf("currclientport: %d\n", curr_client->data->port);
         		printf("currclientipv4: %d\n", curr_client->data->ipv4);
 
+
+			printf("currvmport: %d\n", curr_vm->data->port);
+			printf("currvmipv4: %d\n", curr_vm->data->ipv4);
 
 
             // set memory of  structs for address to send to
