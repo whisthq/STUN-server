@@ -113,7 +113,7 @@ int32_t main(int32_t argc, char **argv) {
     new_client.ipv4 = inet_addr(tmp); // convert to network byte order
 
     // it's a client if it has a "C" tag at the last position in the recv_buff
-    if (recv_buffer[recv_size - 1] == 'C') {
+    if (recv_buff[recv_size - 1] == 'C') {
       // a client also needs to send the IPv4 of the VM it wants to be paired
       // with, which it obtained through authenticating, so we receive another
       // packet containing the target IPv4
