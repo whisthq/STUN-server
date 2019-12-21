@@ -166,7 +166,7 @@ int32_t main(int32_t argc, char **argv) {
 
       // vms don't have a target IP, since they're the ones that get connected to
       // so we just pass a NULL value to make sure the memory isn't used for some black magic
-      new_vm.target_ipv4 = (uint32_t) NULL;
+      new_vm.target_ipv4 = 0; // 0 for null
 
       // create a node for this new vm and add it to the linked list
       if (gll_push_end(vm_list, &new_vm) < 0) {
@@ -233,7 +233,6 @@ int32_t main(int32_t argc, char **argv) {
               printf("Unable to send client endpoint to VM.\n");
 
 
-              printf("errno: %d\n", errno);
 
               return 7;
             }
