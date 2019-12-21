@@ -123,18 +123,30 @@ int32_t main(int32_t argc, char **argv) {
 	printf("recvbuff: %s\n", recv_buff);
 
     // copy the IPv4 and store into our client struct
-    memcpy(&tmp, &recv_buff, recv_size - 1);
+//    memcpy(&tmp, &recv_buff, recv_size - 1);
 
-	printf("memcpied: %s\n", tmp);
+//	printf("memcpied: %s\n", tmp);
  // copy the IPv4 of the sender without the tag
-    new_client.ipv4 = inet_addr(tmp); // convert to network byte order
+//    new_client.ipv4 = inet_addr(tmp); // convert to network byte order
 
 
-   printf("newclientipv4: %d\n", new_client.ipv4);
+  // printf("newclientipv4: %d\n", new_client.ipv4);
 
 
     // it's a client if it has a "C" tag at the last position in the recv_buff
     if (recv_buff[recv_size - 1] == 'C') {
+
+      // copy the IPv4 and store into our client struct
+      memcpy(&tmp, &recv_buff, recv_size - 1);
+      // copy the IPv4 of the sender without the tag
+      new_client.ipv4 = inet_addr(tmp); // convert to network byte order
+
+
+     printf("newclientipv4: %d\n", new_client.ipv4);
+
+
+
+
       // empty memory of buffers for next use
       memset(&recv_buff, 0, BUFLEN);
       memset(&tmp, 0, 128);
@@ -163,7 +175,7 @@ int32_t main(int32_t argc, char **argv) {
 
       // copy the target IPv4 and store into our client struct
       memcpy(&tmp, &recv_buff, recv_size); // copy the target IPv4, no tag this time
-     
+
 
 	printf("memcpied ip: %s\n", tmp);
 
@@ -183,6 +195,15 @@ int32_t main(int32_t argc, char **argv) {
     }
     // this is a VM waiting for a connection, no need to receive anything else
     else {
+
+
+      // copy the IPv4 and store into our client struct
+      memcpy(&tmp, &recv_buff, recv_size - 1);
+      // copy the IPv4 of the sender without the tag
+      new_client.ipv4 = inet_addr(tmp); // convert to network byte order
+
+
+
       // create a node for this new vm and add it to the linked list
       if (gll_push_end(vm_list, &new_client) < 0) {
         printf("Unable to add vm struct to end of vm list.\n");
