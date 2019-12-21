@@ -149,7 +149,7 @@ int32_t main(int32_t argc, char **argv) {
         printf("Unable to add client struct to end of client list.\n");
         return 5;
       }
-      printf("Received new client pairing request: Client #%d.\n", clients_n);
+      printf("Inserted new client pairing request in queue: Client #%d.\n", clients_n);
       clients_n++; // increment count
     }
     // this is a VM waiting for a connection, no need to receive anything else
@@ -173,7 +173,7 @@ int32_t main(int32_t argc, char **argv) {
         printf("Unable to add vm struct to end of vm list.\n");
         return 6;
       }
-      printf("Received new VM pairing request: VM #%d.\n", vms_n);
+      printf("Inserted new VM pairing request in queue: VM #%d.\n", vms_n);
       vms_n++; // increment count
     }
 
@@ -196,26 +196,11 @@ int32_t main(int32_t argc, char **argv) {
           // get the IPv4 of that VM in network byte format
           curr_vm_ipv4 = curr_vm->data->ipv4;
 
-
-        	printf("currclienttargetipv4: %d\n", curr_client->data->target_ipv4);
-        	printf("currvmpiv4: %d\n", curr_vm->data->ipv4);
-
-
           // if the client wants to connect to this VM, we send their endpoints
           if (curr_client_target_ipv4 == curr_vm_ipv4) {
             // we send memory to avoid endianness byte issue
             memcpy(client_endpoint, &curr_client->data, sizeof(struct client));
             memcpy(vm_endpoint, &curr_vm->data, sizeof(struct client));
-
-
-
-        		printf("currclientport: %d\n", curr_client->data->port);
-        		printf("currclientipv4: %d\n", curr_client->data->ipv4);
-
-
-			printf("currvmport: %d\n", curr_vm->data->port);
-			printf("currvmipv4: %d\n", curr_vm->data->ipv4);
-
 
             // set memory of  structs for address to send to
             memset(&client_addr, 0, sizeof(client_addr));
@@ -234,9 +219,6 @@ int32_t main(int32_t argc, char **argv) {
             // send the endpoint of the client to the VM
             if (sendto(punch_socket, client_endpoint, sizeof(struct client), 0, (struct sockaddr *) &vm_addr, addr_size) < 0) {
               printf("Unable to send client endpoint to VM.\n");
-
-
-
               return 7;
             }
 
@@ -252,7 +234,7 @@ int32_t main(int32_t argc, char **argv) {
             gll_remove(vm_list, j); // remove VM
 
             // status message
-            printf("Paired client #%d with VM #%d.\n", i, j);
+            printf("Paired client #%d with VM #%d and removed them from queue.\n", i, j);
 
             // and decrease the counts left to connect
             clients_n--;
