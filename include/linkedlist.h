@@ -1,11 +1,11 @@
 /*
  * This file contains the headers of a simple generic doubly-linked list
- * used by the hole punching server to keep track of incoming per requests for
+ * used by the hole punching server to keep track of incoming peer requests for
  * pairing with a VM.
  *
  * Hole Punching Server version: 1.0
  *
- * Last modification: 12/20/2019
+ * Last modification: 12/21/2019
  *
  * By: Philippe Noël
  *
@@ -18,7 +18,7 @@
 struct client {
   uint32_t ipv4; // IPv4 of the client to connect to another client
   uint16_t port; // port of the client to connect to another client
-  uint32_t target_ipv4; // IPv4 of the VM to connect to if this is a local device
+  uint32_t target_ipv4; // IPv4 of VM to connect to if this is a local device
 };
 
 // generic linked list node type

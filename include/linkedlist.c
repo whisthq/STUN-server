@@ -1,11 +1,11 @@
 /*
- * This file contains the implementation of a simple generic doubly-linked list
- * used by the hole punching server to keep track of incoming per requests for
+ * This file contains the implementations of a simple generic doubly-linked list
+ * used by the hole punching server to keep track of incoming peer requests for
  * pairing with a VM.
  *
  * Hole Punching Server version: 1.0
  *
- * Last modification: 12/19/2019
+ * Last modification: 12/21/2019
  *
  * By: Philippe Noël
  *

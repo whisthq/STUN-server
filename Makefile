@@ -5,7 +5,7 @@ CC = gcc
 BIN_NAME = server
 
 # objects to build
-OBJS = linkedlist.o main.o
+OBJS = include/socket.o include/linkedlist.o main.o
 
 # warnings
 WARNINGS = \
@@ -41,7 +41,7 @@ all: clean $(OBJS)
 
 # clean directory
 clean:
-	-rm -f linkedlist.o main.o server *.d
+	-rm -f socket.o linkedlist.o main.o server *.d
 
 # clear
 .PHONY: all clean

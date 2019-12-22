@@ -1,32 +1,23 @@
 /*
- * This file creates a server that connects to two clients through UDP hole
- * punch, acting as a Fractal hole punching server. This hole punching serer is
+ * This file creates a server that connects two clients through UDP hole punch,
+ * acting as a Fractal hole punching server. This hole punching serer is
  * built for AWS Lightsail with Ubuntu 18.04.
  *
  * Hole Punching Server version: 1.0
  *
- * Last modification: 12/21/2019
+ * Last modification: 12/22/2019
  *
  * By: Philippe Noël
  *
  * Copyright Fractal Computers, Inc. 2019
 **/
 
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-
-#include "linkedlist.h" // header file for the linked list functions
+#include "include/socket.h" // header file for reliable UDP sending
+#include "include/linkedlist.h" // header file for the linked list functions
 
 #define BUFLEN 128 // len of receive buffer
 #define HOLEPUNCH_PORT 48488 // Fractal default holepunch port
-#define QUEUE_LEN 50 // arbitrary, at most 50 concurrent pairing requests
+#define MAX_QUEUE_LEN 50 // arbitrary, at most 50 concurrent pairing requests waiting
 
 /// @brief listens for UDP VM-client pairs to connect through hole punching
 /// @details hole punches through NATs by saving received address and port
@@ -36,7 +27,7 @@ int32_t main(int32_t argc, char **argv) {
 
   // usage check
   if (argc != 1) {
-    printf("Usage: ./main\n"); // no argument needed
+    printf("Usage: ./server\n"); // no argument needed
     return 1;
   }
 
@@ -44,18 +35,18 @@ int32_t main(int32_t argc, char **argv) {
   int punch_socket; // socket ID
   ssize_t recv_size; // received packets size
   struct sockaddr_in my_addr, request_addr; // endpoint of server and requests
-  char recv_buff[BUFLEN], tmp[128]; // buffer to receive UDP packets and tmp store for memcpy
   socklen_t addr_size = sizeof(request_addr); // length of request address struct
-  struct client new_client, new_vm; // for the request we receive
+  int i, j, clients_n = 0, vms_n = 0; // counter vars
+
+  // buffer and reception vars
+  char recv_buff[BUFLEN], tmp[BUFLEN]; // buffer to receive UDP packets and tmp store for memcpy
   uint32_t curr_client_target_ipv4, curr_vm_ipv4; // IPv4 of vm, client compared for match
+  struct client new_client, new_vm; // for the request we receive
 
   // linked lists to hold the pairing requests to be fulfilled
   struct gll_t *client_list = gll_init();
   struct gll_t *vm_list = gll_init();
-  int i, j, clients_n = 0, vms_n = 0; // counter vars
-
-  // linked list nodes for sending endpoint data
-  struct gll_node_t *curr_client, *curr_vm;
+  struct gll_node_t *curr_client, *curr_vm; // linked list nodes for sending endpoint data
 
   // endpoints to send over the sockets for pairing
   unsigned char client_endpoint[sizeof(struct client)]; // client
@@ -84,29 +75,22 @@ int32_t main(int32_t argc, char **argv) {
 
   // loop forever to keep connecting VM-client pairs
   while (1) {
-    // empty memory for request address
+    // empty memory for request address and buffers
     memset(&request_addr, 0, sizeof(request_addr));
-    memset(&tmp, 0, 128); // and for tmp buffer to avoid garbage init memory in memcpy
-    memset(&recv_buff, 0, BUFLEN); // and recv buffer for the same reason
+    memset(&tmp, 0, BUFLEN); // to avoid garbage init memory
+    memset(&recv_buff, 0, BUFLEN); // to avoid garbage init memory
 
-    printf("Waiting for connection requests...\n");
+    printf("Waiting for a connection request...\n"); // for transparency
     // receive a UDP packet with the IPv4 address of the sender to act as a
     // connection request with a tag to indicate whether this is from a client
     // or a VM. The packet format is "x.x.x.xT", where T = C is this is a local
     // client, and V if it is from a VM
-    if ((recv_size = recvfrom(punch_socket, recv_buff, BUFLEN, 0, (struct sockaddr *) &request_addr, &addr_size)) < 0) {
+    if ((recv_size = reliable_udp_recvfrom(punch_socket, &recv_buff, BUFLEN, request_addr, addr_size)) < 0) {
+      // very unlikely it can fail with error code -1
       printf("Unable to receive connection-request UDP packet.\n");
       return 4;
     }
     printf("Received connection request from a client.\n");
-
-    // acknowledge receipt of the packet to ensure we can re-send if the packet
-    // failed, since this is UDP, we just send an empty packet
-    if (sendto(punch_socket, "", 0, 0, (struct sockaddr *) &request_addr, addr_size) < 0) {
-      printf("Unable to send connection receipt acknowledgement UDP packet.\n");
-      return 5;
-    }
-    printf("Sent connection receipt acknowledgement to the client.\n");
 
     // it's a client if it has a "C" tag at the last position in the recv_buff
     if (recv_buff[recv_size - 1] == 'C') {
@@ -122,35 +106,32 @@ int32_t main(int32_t argc, char **argv) {
 
       // empty memory of buffers for next IP address since this is a client
       memset(&recv_buff, 0, BUFLEN);
-      memset(&tmp, 0, 128);
+      memset(&tmp, 0, BUFLEN);
 
       // a client also needs to send the IPv4 of the VM it wants to be paired
       // with, which it obtained through authenticating, so we receive another
       // packet containing the target IPv4
-      if ((recv_size = recvfrom(punch_socket, recv_buff, BUFLEN, 0, (struct sockaddr *) &request_addr, &addr_size)) < 0) {
+      if ((recv_size = reliable_udp_recvfrom(punch_socket, &recv_buff, BUFLEN, request_addr, addr_size)) < 0) {
+        // very unlikely it can fail with error code -1
         printf("Unable to receive client target IPv4 UDP packet.\n");
         return 6;
       }
-      printf("Received the local client target VM IPv4 request.\n");
-
-      // acknowledge receipt again to make sure we can send it again if necessary
-      if (sendto(punch_socket, "", 0, 0, (struct sockaddr *) &request_addr, addr_size) < 0) {
-        printf("Unable to send target IPv4 receipt acknowledgment UDP packet.\n");
-        return 7;
-      }
-      printf("Sent target IPv4 receipt acknowledgement to the local client.\n");
+      printf("Received connection request from a client.\n");
 
       // copy the target IPv4 and store into our client struct
       memcpy(&tmp, &recv_buff, recv_size); // copy the target IPv4, no tag this time
       new_client.target_ipv4 = inet_addr(tmp); // convert to network byte order
 
-      // create a node for this new client and add it to the linked list
-      if (gll_push_end(client_list, &new_client) < 0) {
-        printf("Unable to add client struct to end of client list.\n");
-        return 5;
+      // if there's still space on our client queue
+      if (clients_n < MAX_QUEUE_LEN) {
+        // create a node for this new client and add it to the linked list
+        if (gll_push_end(client_list, &new_client) < 0) {
+          printf("Unable to add client struct to end of client list.\n");
+          return 5;
+        }
+        printf("Inserted new client pairing request in queue: Client #%d.\n", clients_n);
+        clients_n++; // increment count
       }
-      printf("Inserted new client pairing request in queue: Client #%d.\n", clients_n);
-      clients_n++; // increment count
     }
     // this is a VM waiting for a connection, no need to receive anything else
     else {
@@ -168,13 +149,16 @@ int32_t main(int32_t argc, char **argv) {
       // so we just pass a NULL value to make sure the memory isn't used for some black magic
       new_vm.target_ipv4 = 0; // 0 for null
 
-      // create a node for this new vm and add it to the linked list
-      if (gll_push_end(vm_list, &new_vm) < 0) {
-        printf("Unable to add vm struct to end of vm list.\n");
-        return 6;
+      // if there's still space on our vm queue
+      if (vm_s < MAX_QUEUE_LEN) {
+        // create a node for this new vm and add it to the linked list
+        if (gll_push_end(vm_list, &new_vm) < 0) {
+          printf("Unable to add vm struct to end of vm list.\n");
+          return 6;
+        }
+        printf("Inserted new VM pairing request in queue: VM #%d.\n", vms_n);
+        vms_n++; // increment count
       }
-      printf("Inserted new VM pairing request in queue: VM #%d.\n", vms_n);
-      vms_n++; // increment count
     }
 
     // check if we have any possible pairing to make
@@ -202,7 +186,7 @@ int32_t main(int32_t argc, char **argv) {
             memcpy(client_endpoint, &curr_client->data, sizeof(struct client));
             memcpy(vm_endpoint, &curr_vm->data, sizeof(struct client));
 
-            // set memory of  structs for address to send to
+            // reset memory of structs for address to send to
             memset(&client_addr, 0, sizeof(client_addr));
             memset(&vm_addr, 0, sizeof(vm_addr));
 
@@ -217,16 +201,19 @@ int32_t main(int32_t argc, char **argv) {
             vm_addr.sin_addr.s_addr = curr_vm->data->ipv4; // already in network byte order
 
             // send the endpoint of the client to the VM
-            if (sendto(punch_socket, client_endpoint, sizeof(struct client), 0, (struct sockaddr *) &vm_addr, addr_size) < 0) {
+            if (reliable_udp_sendto(punch_socket, client_endpoint, sizeof(struct client), vm_addr, addr_size) < 0) {
+              // very unlikely, but could fail after 10 attempts with error code -1
               printf("Unable to send client endpoint to VM.\n");
               return 7;
             }
 
             // send the endpoint of the vm to the client
-            if (sendto(punch_socket, vm_endpoint, sizeof(struct client), 0, (struct sockaddr *) &client_addr, addr_size) < 0) {
+            if (reliable_udp_sendto(punch_socket, vm_endpoint, sizeof(struct client), client_addr, addr_size) < 0) {
+              // very unlikely, but could fail after 10 attempts with error code -1
               printf("Unable to send VM endpoint to client.\n");
               return 8;
             }
+
             // the two are now paired and can start communicating over UDP
 
             // now that we paired the two, we remove them from the request lists
@@ -234,14 +221,14 @@ int32_t main(int32_t argc, char **argv) {
             gll_remove(vm_list, j); // remove VM
 
             // status message
-            printf("Paired client #%d with VM #%d and removed them from queue.\n", i, j);
+            printf("Paired client #%d with VM #%d and removed them from the queue.\n", i, j);
 
             // and decrease the counts left to connect
             clients_n--;
             vms_n--;
           }
-        } // vms for loop
-      } // clients for loop
+        } // vms for-loop
+      } // clients for-loop
     } // if there is a non-zero # of VMs and clients to connect
   } // forever while loop
   // server loop exited, close linked lists to exit
