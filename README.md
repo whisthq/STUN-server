@@ -4,7 +4,7 @@ This repository contains the implementation for the Fractal hole punching server
 
 The code is in C and runs on Linux Ubuntu 18.04.
 
-Fractal hole punching server(s) are all hosted on AWS Lightsail with Ubuntu 18.04.
+Fractal hole punching server(s) are all hosted on AWS Lightsail with Ubuntu 18.04. When creating a new hole punching server, you can simply create an Ubuntu 18.04 OS-only instance from the AWS Lightsail platform. You then need to create a Static IP, which is free if attached to an instance, and attach it to the new instance created. You then need to go into the instance's networking and open "All UDP" on the ports and remove everything else but SSH.
 
 Each AWS Lightsail server, before making and running the server code, needs to be configured with:
 - sudo apt-get update
