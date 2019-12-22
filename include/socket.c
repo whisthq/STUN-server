@@ -23,7 +23,7 @@
 
 // @brief ensures reliable UDP sending over a socket by listening for an ack
 // @details requires complementary reliable_udp_recvfrom on the receiving end
-int reliable_udp_sendto(int socket_fd, char *message, int message_len, struct sockaddr_in dest_addr, socklen_t addr_size) {
+int reliable_udp_sendto(int socket_fd, unsigned char *message, int message_len, struct sockaddr_in dest_addr, socklen_t addr_size) {
   // buffer to receive the acknowledgement packet
   char ack_buff[ACK_BUFFLEN];
   int msg_sent_size, ack_recv_size, attempts = 0; // packets sizes and # of connection attempts

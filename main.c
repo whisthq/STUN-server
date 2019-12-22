@@ -85,7 +85,7 @@ int32_t main(int32_t argc, char **argv) {
     // connection request with a tag to indicate whether this is from a client
     // or a VM. The packet format is "x.x.x.xT", where T = C is this is a local
     // client, and V if it is from a VM
-    if ((recv_size = reliable_udp_recvfrom(punch_socket, &recv_buff, BUFLEN, request_addr, addr_size)) < 0) {
+    if ((recv_size = reliable_udp_recvfrom(punch_socket, recv_buff, BUFLEN, request_addr, addr_size)) < 0) {
       // very unlikely it can fail with error code -1
       printf("Unable to receive connection-request UDP packet.\n");
       return 4;
@@ -111,7 +111,7 @@ int32_t main(int32_t argc, char **argv) {
       // a client also needs to send the IPv4 of the VM it wants to be paired
       // with, which it obtained through authenticating, so we receive another
       // packet containing the target IPv4
-      if ((recv_size = reliable_udp_recvfrom(punch_socket, &recv_buff, BUFLEN, request_addr, addr_size)) < 0) {
+      if ((recv_size = reliable_udp_recvfrom(punch_socket, recv_buff, BUFLEN, request_addr, addr_size)) < 0) {
         // very unlikely it can fail with error code -1
         printf("Unable to receive client target IPv4 UDP packet.\n");
         return 6;
