@@ -150,7 +150,7 @@ int32_t main(int32_t argc, char **argv) {
       new_vm.target_ipv4 = 0; // 0 for null
 
       // if there's still space on our vm queue
-      if (vm_s < MAX_QUEUE_LEN) {
+      if (vms_n < MAX_QUEUE_LEN) {
         // create a node for this new vm and add it to the linked list
         if (gll_push_end(vm_list, &new_vm) < 0) {
           printf("Unable to add vm struct to end of vm list.\n");

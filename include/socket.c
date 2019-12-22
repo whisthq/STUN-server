@@ -23,7 +23,7 @@
 
 // @brief ensures reliable UDP sending over a socket by listening for an ack
 // @details requires complementary reliable_udp_recvfrom on the receiving end
-uint32_t reliable_udp_sendto(int socket_fd, char *message, int message_len, struct sockaddr_in dest_addr, socklen_t addr_size) {
+int reliable_udp_sendto(int socket_fd, char *message, int message_len, struct sockaddr_in dest_addr, socklen_t addr_size) {
   // buffer to receive the acknowledgement packet
   char ack_buff[ACK_BUFFLEN];
   int msg_sent_size, ack_recv_size, attempts = 0; // packets sizes and # of connection attempts
@@ -75,11 +75,10 @@ uint32_t reliable_udp_sendto(int socket_fd, char *message, int message_len, stru
 
 // @brief ensures reliable UDP receiving over a socket by listening for an ack
 // @details requires complementary reliable_udp_sendto on the sending end
-uint32_t reliable_udp_recvfrom(int socket_fd, char *msg_buff, int msg_bufflen, struct sockaddr_in dest_addr, socklen_t addr_size) {
-  // buffer to receive the acknowledgement
-  char ack_buff[ACK_BUFFLEN];
-  int msg_recv_size, tmp_recv_size, attempts = 0; // packets sizes and # of connection attempts
-  int ack_sent = 0; // bool to know whether an ack was sent previously
+int reliable_udp_recvfrom(int socket_fd, char *msg_buff, int msg_bufflen, struct sockaddr_in dest_addr, socklen_t addr_size) {
+  // vars to know packet sizes, number of connection attempts and whether an ack was sent
+  int msg_recv_size, tmp_recv_size, attempts = 0;
+  int ack_sent = 0;
 
   // define struct to handle timeout (only on receive calls)
   struct timeval tv;
