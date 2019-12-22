@@ -19,6 +19,6 @@ When running the server quickly after it just quit, the socket will still be bou
 The server can be run with `./server` and will run forever, hole-punching a direct UDP connection between a Fractal cloud computer and a client device sequentially as it receives the requests whenever a user logs in.
 
 Currently there are 1 hole punching servers:
-- Fractal-HolePunchServer-1
-    - Public IP: 52.86.203.149
+- Fractal-UDPHolePunchServer-1
+    - Public IP: 34.200.170.47
     - Location: US-East 1 (Northern Virginia)
