@@ -30,7 +30,7 @@ int reliable_udp_sendto(int socket_fd, unsigned char *message, int message_len, 
 
   // define struct to handle timeout (only on receive calls)
   struct timeval tv;
-  tv.tv_sec = 1; // 1 second timeout
+  tv.tv_sec = 1; // 1 second timeout time
   tv.tv_usec = 0;
 
   // set timeout on our socket
@@ -75,14 +75,14 @@ int reliable_udp_sendto(int socket_fd, unsigned char *message, int message_len, 
 
 // @brief ensures reliable UDP receiving over a socket by listening for an ack
 // @details requires complementary reliable_udp_sendto on the sending end
-int reliable_udp_recvfrom(int socket_fd, char *msg_buff, int msg_bufflen, struct sockaddr_in dest_addr, socklen_t addr_size) {
+int reliable_udp_recvfrom(int socket_fd, char *msg_buff, int msg_bufflen, struct sockaddr_in dest_addr, socklen_t addr_size, int timeout) {
   // vars to know packet sizes, number of connection attempts and whether an ack was sent
   int msg_recv_size, tmp_recv_size, attempts = 0;
   int ack_sent = 0;
 
   // define struct to handle timeout (only on receive calls)
   struct timeval tv;
-  tv.tv_sec = 1; // 1 second timeout
+  tv.tv_sec = timeout; // timeout time, 0 is no timeout
   tv.tv_usec = 0;
 
   // set timeout on our socket
@@ -106,19 +106,26 @@ int reliable_udp_recvfrom(int socket_fd, char *msg_buff, int msg_bufflen, struct
       // there's also the possibility ack wasn't received and the new message
       // send wasn't received, so we need an error checking in the code using
       // this function to exit the application if that happens (unlikely)
-      // easy to know --
-
-      // or if not received + msg not received, that can happen, in this case the
-      // message wasnt received, so put something on the client to exit the application
-      // because of network error
+      // in this case the message wasnt received, so put something on the client
+      // to exit the application because of network error
       if (ack_sent) {
         break; // assume ack was received since it timed out
       }
       // no ack, we just didn't receive the message
       else {
-        printf("Timeout reached on attempt #%d. Waiting for message resending.\n", attempts);
-        // increment attempts count
-        attempts += 1;
+        // if timeout is 0, then it just failed so we exit, if timeout is there,
+        // then it just timed out and we retry
+        if (timeout == 0) {
+          attempts = MAX_N_ATTEMPTS; // to exit with error code
+          printf("Error receiving on no timeout socket.\n");
+          break;
+        }
+        else {
+          // else we just keep retrying
+          printf("Timeout reached on attempt #%d. Waiting for message resending.\n", attempts);
+          // increment attempts count
+          attempts += 1;
+        }
       }
     }
     // message received, we send an ack
