@@ -95,9 +95,6 @@ int reliable_udp_recvfrom(int socket_fd, char *msg_buff, int msg_bufflen, struct
   // wait for another attempt, or if our ack isn't received we try again up to
   // MAX_N_ATTEMPTS times, after which we give up
   while (attempts < MAX_N_ATTEMPTS) {
-    // reset buffer memory
-    memset(msg_buff, 0, msg_bufflen);
-
     // listen for the message
     if ((tmp_recv_size = recvfrom(socket_fd, msg_buff, msg_bufflen, 0, (struct sockaddr *) &dest_addr, &addr_size)) < 0) {
       // if it failed and we had previously sent an ack, that's because the ack
@@ -123,15 +120,24 @@ int reliable_udp_recvfrom(int socket_fd, char *msg_buff, int msg_bufflen, struct
         else {
           // else we just keep retrying
           printf("Timeout reached on attempt #%d. Waiting for message resending.\n", attempts);
-          // increment attempts count
+          // reset memory and increment attempts count
+          memset(msg_buff, 0, msg_bufflen);
           attempts += 1;
         }
       }
     }
     // message received, we send an ack
     else {
+
+
+	printf("tmprecvsize: %d\n", tmp_recv_size);
+
       // store message received size
       msg_recv_size = tmp_recv_size;
+
+
+	printf("recv msg!\n");
+
 
       // now that the message is received, we need to reset a timeout on the socket so that if no
       // further message attempt happens, it successfully exists

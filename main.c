@@ -93,8 +93,19 @@ int32_t main(int32_t argc, char **argv) {
     }
     printf("Received connection request from a client.\n");
 
+
+	printf("recvsize: %ld\n", recv_size);
+
+	printf("recbuff[recvsize -1] == %c\n", recv_buff[recv_size - 1]);
+
+
+
     // it's a client if it has a "C" tag at the last position in the recv_buff
     if (recv_buff[recv_size - 1] == 'C') {
+
+	printf("do we make it here\n");
+
+
       // fill struct pointer to hold this new client
       memset(&new_client, 0, sizeof(struct client));
 
