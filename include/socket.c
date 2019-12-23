@@ -133,6 +133,14 @@ int reliable_udp_recvfrom(int socket_fd, char *msg_buff, int msg_bufflen, struct
       // store message received size
       msg_recv_size = tmp_recv_size;
 
+      // now that the message is received, we need to reset a timeout on the socket so that if no
+      // further message attempt happens, it successfully exists
+      tv.tv_sec = 1; // one second timeout to see if connection failed and new message sent
+      if (setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
+        printf("Could not re-set timeout on socket.\n");
+        return 1;
+      }
+
       // send message reception acknowledgement
       if (sendto(socket_fd, "ACK", strlen("ACK"), 0, (struct sockaddr *) &dest_addr, addr_size) < 0) {
         printf("Unable to send ack to the destination.\n");
