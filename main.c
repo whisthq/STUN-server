@@ -5,7 +5,7 @@
  *
  * Hole Punching Server version: 1.0
  *
- * Last modification: 12/22/2019
+ * Last modification: 12/24/2019
  *
  * By: Philippe Noël
  *
@@ -21,16 +21,7 @@
 
 /// @brief listens for UDP VM-client pairs to connect through hole punching
 /// @details hole punches through NATs by saving received address and port
-int32_t main(int32_t argc, char **argv) {
-  // unused argv
-  (void) argv;
-
-  // usage check
-  if (argc != 1) {
-    printf("Usage: ./server\n"); // no argument needed
-    return 1;
-  }
-
+int main() {
   // hole punching server variables
   int punch_socket; // socket ID
   ssize_t recv_size; // received packets size
@@ -56,7 +47,7 @@ int32_t main(int32_t argc, char **argv) {
   // create listening socket listening for VM-client pairs to connect
   if ((punch_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
     printf("Unable to create socket.\n");
-    return 1;
+    return -1;
   }
   printf("UDP socket created.\n");
 
@@ -69,7 +60,7 @@ int32_t main(int32_t argc, char **argv) {
   // bind the listensocket to our server address
   if (bind(punch_socket, (struct sockaddr *) &my_addr, sizeof(my_addr)) < 0) {
     printf("Unable to bound socket to port %d.\n", HOLEPUNCH_PORT);
-    return 2;
+    return -2;
   }
   printf("UDP socket bound to port %d.\n", HOLEPUNCH_PORT);
 
@@ -85,11 +76,10 @@ int32_t main(int32_t argc, char **argv) {
     // connection request with a tag to indicate whether this is from a client
     // or a VM. The packet format is "x.x.x.xT", where T = C is this is a local
     // client, and V if it is from a VM
-    // last argument is timeout time in seconds, 0 for no timeout
-    if ((recv_size = reliable_udp_recvfrom(punch_socket, recv_buff, BUFLEN, request_addr, addr_size, 0)) < 0) {
+    if ((recv_size = reliable_udp_recvfrom(punch_socket, recv_buff, BUFLEN, request_addr, addr_size)) < 0) {
       // very unlikely it can fail with error code -1
       printf("Unable to receive connection-request UDP packet.\n");
-      return 4;
+      return -3;
     }
     printf("Received connection request from a client.\n");
 
@@ -123,10 +113,10 @@ int32_t main(int32_t argc, char **argv) {
       // a client also needs to send the IPv4 of the VM it wants to be paired
       // with, which it obtained through authenticating, so we receive another
       // packet containing the target IPv4
-      if ((recv_size = reliable_udp_recvfrom(punch_socket, recv_buff, BUFLEN, request_addr, addr_size, 0)) < 0) {
+      if ((recv_size = reliable_udp_recvfrom(punch_socket, recv_buff, BUFLEN, request_addr, addr_size)) < 0) {
         // very unlikely it can fail with error code -1
         printf("Unable to receive client target IPv4 UDP packet.\n");
-        return 6;
+        return -4;
       }
       printf("Received connection request from a client.\n");
 
@@ -139,7 +129,7 @@ int32_t main(int32_t argc, char **argv) {
         // create a node for this new client and add it to the linked list
         if (gll_push_end(client_list, &new_client) < 0) {
           printf("Unable to add client struct to end of client list.\n");
-          return 5;
+          return -5;
         }
         printf("Inserted new client pairing request in queue: Client #%d.\n", clients_n);
         clients_n++; // increment count
@@ -166,7 +156,7 @@ int32_t main(int32_t argc, char **argv) {
         // create a node for this new vm and add it to the linked list
         if (gll_push_end(vm_list, &new_vm) < 0) {
           printf("Unable to add vm struct to end of vm list.\n");
-          return 6;
+          return -6;
         }
         printf("Inserted new VM pairing request in queue: VM #%d.\n", vms_n);
         vms_n++; // increment count
@@ -216,14 +206,14 @@ int32_t main(int32_t argc, char **argv) {
             if (reliable_udp_sendto(punch_socket, client_endpoint, sizeof(struct client), vm_addr, addr_size) < 0) {
               // very unlikely, but could fail after 10 attempts with error code -1
               printf("Unable to send client endpoint to VM.\n");
-              return 7;
+              return -7;
             }
 
             // send the endpoint of the vm to the client
             if (reliable_udp_sendto(punch_socket, vm_endpoint, sizeof(struct client), client_addr, addr_size) < 0) {
               // very unlikely, but could fail after 10 attempts with error code -1
               printf("Unable to send VM endpoint to client.\n");
-              return 8;
+              return -8;
             }
             // the two are now paired and can start communicating over UDP
             // now that we paired the two, we remove them from the request lists

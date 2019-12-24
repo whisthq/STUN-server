@@ -5,15 +5,12 @@
  *
  * Hole Punching Server version: 1.0
  *
- * Last modification: 12/21/2019
+ * Last modification: 12/24/2019
  *
  * By: Philippe Noël
  *
  * Copyright Fractal Computers, Inc. 2019
 **/
-
-#include <stdlib.h>
-#include <stdio.h>
 
 #include "linkedlist.h" // header file for this file
 
