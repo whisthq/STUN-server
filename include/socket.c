@@ -94,7 +94,7 @@ int reliable_udp_recvfrom(int socket_fd, char *msg_buff, int msg_bufflen, struct
 
     // if nothing is received before timeout (errno checks) or the socket fails
     // while without a timeout
-    if (tmp_recv_size < 0 || errno == EAGAGAIN || errno = EWOULDBLOCK) {
+    if (tmp_recv_size < 1 || errno == EAGAGAIN || errno == EWOULDBLOCK) {
       // if it failed and we had previously sent an ack, that's because the ack
       // was received and so the server didn't send anything back, so we can
       // safely break
