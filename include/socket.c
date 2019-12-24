@@ -121,6 +121,15 @@ int reliable_udp_recvfrom(int socket_fd, char *msg_buff, int msg_bufflen, struct
       // in this case the message wasnt received, so put something on the client
       // to exit the application because of network error
       if (ack_sent) {
+        // success, let's reset the socket file descriptor to wait infinitely
+        tv.tv_sec = 0;
+
+        // set timeout
+        if (setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
+          printf("Could not set timeout on socket.\n");
+          return -2;
+        }
+        // exit for success
         break; // assume ack was received since it timed out
       }
       // no ack, we just didn't receive the message
