@@ -40,6 +40,8 @@ int reliable_udp_sendto(int socket_fd, unsigned char *message, int message_len, 
     return -2;
   }
 
+  printf("Attempting to send reliable UDP packet.\n"); // for transparency
+
   // we send the UDP packet and wait for an ack, if it isn't received we retry
   // up to MAX_N_ATTEMPTS times, after which we give up
   while (attempts < MAX_N_ATTEMPTS) {
@@ -61,6 +63,7 @@ int reliable_udp_sendto(int socket_fd, unsigned char *message, int message_len, 
     }
     // received ack to confirm the packet was received
     else {
+      printf("Received Ack, sending successful.\n");
       break; // done sending
     }
   }
@@ -94,7 +97,7 @@ int reliable_udp_recvfrom(int socket_fd, char *msg_buff, int msg_bufflen, struct
 
     // if nothing is received before timeout (errno checks) or the socket fails
     // while without a timeout
-    if (tmp_recv_size < 1 || errno == EAGAGAIN || errno == EWOULDBLOCK) {
+    if (tmp_recv_size < 0 || errno == EAGAIN || errno == EWOULDBLOCK) {
       // if it failed and we had previously sent an ack, that's because the ack
       // was received and so the server didn't send anything back, so we can
       // safely break
