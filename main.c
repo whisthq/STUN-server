@@ -107,6 +107,7 @@ int main(void) {
       new_client.ipv4 = inet_addr(tmp); // convert to network byte order
 
       // empty memory of buffers for next IP address since this is a client
+      memset(&request_addr, 0, sizeof(request_addr));
       memset(&recv_buff, 0, BUFLEN);
       memset(&tmp, 0, BUFLEN);
 
