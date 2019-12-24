@@ -21,7 +21,7 @@
 
 /// @brief listens for UDP VM-client pairs to connect through hole punching
 /// @details hole punches through NATs by saving received address and port
-int main() {
+int main(void) {
   // hole punching server variables
   int punch_socket; // socket ID
   ssize_t recv_size; // received packets size
