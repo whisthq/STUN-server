@@ -88,6 +88,17 @@ int reliable_udp_recvfrom(int socket_fd, char *msg_buff, int msg_bufflen, struct
   int msg_recv_size, tmp_recv_size, attempts = 0;
   int ack_sent = 0, timeout = 0; // no timeout at first
 
+  // define struct to handle timeout (only on receive calls)
+  struct timeval tv;
+  tv.tv_sec = 0; // 0 seconds timeout at first
+  tv.tv_usec = 0;
+
+  // set timeout
+  if (setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
+    printf("Could not re-set timeout on socket.\n");
+    return -2;
+  }
+
   // we recv the UDP packet and send an ack, if we don't receive the  message we
   // wait for another attempt, or if our ack isn't received we try again up to
   // MAX_N_ATTEMPTS times, after which we give up
@@ -140,17 +151,13 @@ int reliable_udp_recvfrom(int socket_fd, char *msg_buff, int msg_bufflen, struct
 	printf("recv msg!\n");
 
 
-      // now that the message is received, we need to set a timeout on the socket so that if no
+      // now that the message is received, we need to re-set a timeout on the socket so that if no
       // further message attempt happens, it successfully exists
       // 4 seconds (double the sendto timeout) to wait to see if the connection was received
       // if nothing is received after those 4 seconds, we assume the sendto call received our
       // ack and so stopped, while if it didn't receive it it would have re-sent a packe and
       // we would have received something within those 4 second
-
-      struct timeval tv; // define struct to handle timeout (only on receive calls)
       tv.tv_sec = 4; // 4 seconds
-      tv.tv_usec = 0;
-
       timeout = 4; // set timeout for checking in if statement
 
       // set timeout
