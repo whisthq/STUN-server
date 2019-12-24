@@ -99,6 +99,8 @@ int reliable_udp_recvfrom(int socket_fd, char *msg_buff, int msg_bufflen, struct
     return -2;
   }
 
+
+
   // we recv the UDP packet and send an ack, if we don't receive the  message we
   // wait for another attempt, or if our ack isn't received we try again up to
   // MAX_N_ATTEMPTS times, after which we give up

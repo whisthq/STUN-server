@@ -111,6 +111,22 @@ int main(void) {
 //      memset(&recv_buff, 0, BUFLEN);
 //      memset(&tmp, 0, BUFLEN);
 
+
+      // reset the socket to blocking!
+      long arg;
+      // Set to blocking mode again...
+      if( (arg = fcntl(punch_socket, F_GETFL, NULL)) < 0) {
+        printf("fat L\n");
+        return -69;
+      }
+      arg &= (~O_NONBLOCK);
+      if( fcntl(punch_socket, F_SETFL, arg) < 0) {
+          printf("fattest of Ls\n");
+          return -99
+        } 
+
+
+
       // a client also needs to send the IPv4 of the VM it wants to be paired
       // with, which it obtained through authenticating, so we receive another
       // packet containing the target IPv4
