@@ -95,7 +95,7 @@ int reliable_udp_recvfrom(int socket_fd, char *msg_buff, int msg_bufflen, struct
 
   // set timeout
   if (setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
-    printf("Could not re-set timeout on socket.\n");
+    printf("Could not set timeout on socket.\n");
     return -2;
   }
 
@@ -105,6 +105,9 @@ int reliable_udp_recvfrom(int socket_fd, char *msg_buff, int msg_bufflen, struct
   while (attempts < MAX_N_ATTEMPTS) {
     // listen for the message
     tmp_recv_size = recvfrom(socket_fd, msg_buff, msg_bufflen, 0, (struct sockaddr *) &dest_addr, &addr_size);
+
+
+    printf("error is: %d\n", errno);
 
     // if nothing is received before timeout (errno checks) or the socket fails
     // while without a timeout

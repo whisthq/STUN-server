@@ -81,12 +81,12 @@ int main(void) {
       printf("Unable to receive connection-request UDP packet.\n");
       return -3;
     }
-    printf("Received connection request from a client.\n");
+    printf("Received a connection request.\n");
 
 
 	printf("recvsize: %ld\n", recv_size);
 
-	printf("recbuff[recvsize -1] == %c\n", recv_buff[recv_size - 1]);
+	printf("recbuff[recvsize - 1] == %c\n", recv_buff[recv_size - 1]);
 
 
 
@@ -118,7 +118,7 @@ int main(void) {
         printf("Unable to receive client target IPv4 UDP packet.\n");
         return -4;
       }
-      printf("Received connection request from a client.\n");
+      printf("Connection request is from a user client.\n");
 
       // copy the target IPv4 and store into our client struct
       memcpy(&tmp, &recv_buff, recv_size); // copy the target IPv4, no tag this time
