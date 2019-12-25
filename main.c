@@ -30,7 +30,7 @@ int main(void) {
   int i, j, clients_n = 0, vms_n = 0; // counter vars
 
   // buffer and reception vars
-  char recv_buff[BUFLEN], tmp[BUFLEN]; // buffer to receive UDP packets and tmp store for memcpy
+  char recv_buff[BUFLEN], client_ip[BUFLEN], server_ip[BUFLEN]; // buffer to receive UDP packets and tmp store for memcpy
   uint32_t curr_client_target_ipv4, curr_vm_ipv4; // IPv4 of vm, client compared for match
   struct client new_client, new_vm; // for the request we receive
 
@@ -68,7 +68,8 @@ int main(void) {
   while (1) {
     // empty memory for request address and buffers
     memset(&request_addr, 0, sizeof(request_addr));
-    memset(&tmp, 0, BUFLEN); // to avoid garbage init memory
+    memset(&client_ip, 0, BUFLEN); // to avoid garbage init memory
+    memset(&server_ip, 0, BUFLEN); // to avoid garbage init memory
     memset(&recv_buff, 0, BUFLEN); // to avoid garbage init memory
 
     printf("Waiting for a connection request...\n"); // for transparency
@@ -104,6 +105,7 @@ int main(void) {
 
       // copy the IPv4 and store into our client struct
       memcpy(&tmp, &recv_buff, recv_size - 1); // copy without tag
+      printf("temp address is %s\n", tmp);
       new_client.ipv4 = inet_addr(tmp); // convert to network byte order
 
       // empty memory of buffers for next IP address since this is a client
@@ -139,6 +141,7 @@ int main(void) {
 
       // copy the target IPv4 and store into our client struct
       memcpy(&tmp, &recv_buff, recv_size); // copy the target IPv4, no tag this time
+      printf("Temp IP is %s\n", temp);
       new_client.target_ipv4 = inet_addr(tmp); // convert to network byte order
 
       // if there's still space on our client queue
