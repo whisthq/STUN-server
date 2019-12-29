@@ -18,9 +18,9 @@
 
 // a small struct to hold a client pair endpoints
 struct pair {
-    int client_ip;
+    unsigned int client_ip;
     short client_port;
-    int server_ip;
+    unsigned int server_ip;
     short server_port;
 };
 

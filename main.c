@@ -38,7 +38,7 @@ struct client {
 int main(void) {
   // punch vars
   struct sockaddr_in si_me, si_other; // our endpoint and the client's
-  int s, i, j, recv_size, paired, n = 0; // counters
+  int s, i, recv_size, paired, n = 0; // counters
   socklen_t slen = sizeof(si_other); // addr len
   char buf[BUFLEN]; // receive buffer
 
@@ -47,7 +47,7 @@ int main(void) {
 
   // vars to hold the current node and current client or pair we are looking at
   struct gll_node_t *curr_node, *paired_node;
-  struct client client_endpoint; // struct to hold VM or local client endpoint for sending
+  struct client client_endpoint = {0}; // struct to hold VM or local client endpoint for sending
   struct pair tmp; // new pair node to be inserted in the list
 
   // initialize endpoints for a node for reassignment later
@@ -139,7 +139,6 @@ int main(void) {
       si_other.sin_port = client_port;
 
       // create client struct to send endpoint
-      client_endpoint = {0};
       client_endpoint.host = server_ip;
       client_endpoint.port = server_port;
 
@@ -148,7 +147,7 @@ int main(void) {
         printf("Could not send VM endpoint to client.\n");
         return -4;
       }
-      printf("Sent VM info to client %u:%d.\n", client.host, client.port);
+      printf("Sent VM info to client %u:%d.\n", client_endpoint.host, client_endpoint.port);
 
       // prepare endpoint for sending to the VM for hole punching
       si_other.sin_addr.s_addr = server_ip;
@@ -163,6 +162,7 @@ int main(void) {
         printf("Could not send client endpoint to VM.\n");
         return -5;
       }
+      printf("Sent client info to VM %u:%d.\n", client_endpoint.host, client_endpoint.port);
 
       // now that the pairing and hole punching happened, we can remove this node
       gll_remove(pairs_list, paired); // remove whole struct for a pair
