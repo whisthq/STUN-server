@@ -5,9 +5,9 @@
  *
  * Hole Punching Server version: 1.0
  *
- * Last modification: 12/24/2019
+ * Last modified: 12/28/2019
  *
- * By: Philippe Noël
+ * By: Philippe Noël, Ming Ying
  *
  * Copyright Fractal Computers, Inc. 2019
 **/
@@ -19,7 +19,7 @@
 #define MAX_N_ATTEMPTS 10
 
 #define ACK_BUFFLEN 3 // buffer for the acknowledgement packets
-#define MSG_BUFFLEN 20 // buffer for the IP message packets
+#define MSG_BUFFLEN 512 // buffer for the IP message packets
 
 
 // @brief ensures reliable UDP sending over a socket by listening for an ack
@@ -48,12 +48,18 @@ int reliable_udp_sendto(int socket_fd, unsigned char *message, int message_len, 
     // reset memory to avoid packet clumping
     memset(&ack_buff, 0, ACK_BUFFLEN);
 
+    // display previous error, if any, and reset error var
+    printf("Error is :%d\n", errno);
+    errno = 0;
+
     // attempt to send the packet
-    if ((msg_sent_size = sendto(socket_fd, message, message_len, 0, (struct sockaddr *) &dest_addr, addr_size)) < 0) {
+    if ((msg_sent_size = sendto(socket_fd, message, message_len, 0, (struct sockaddr *) &dest_addr, sizeof(dest_addr))) < 0) {
       printf("Unable to send reliable message to the destination.\n");
+      printf("Error is :%d.\n", errno);
       return -3;
     }
 
+    // struct sockaddr_in my_addr, request_addr;
     // message sent, listen for the receipt acknowledgement
     if ((ack_recv_size = recvfrom(socket_fd, ack_buff, ACK_BUFFLEN, 0, (struct sockaddr *) &dest_addr, &addr_size)) < 0) {
       printf("Ack receipt timeout reached on attempt #%d. Resending message.\n", attempts);
@@ -86,11 +92,11 @@ int reliable_udp_sendto(int socket_fd, unsigned char *message, int message_len, 
 int reliable_udp_recvfrom(int socket_fd, char *msg_buff, int msg_bufflen, struct sockaddr_in dest_addr, socklen_t addr_size) {
   // vars to know packet sizes, number of connection attempts and whether an ack was sent
   int msg_recv_size, tmp_recv_size, attempts = 0;
-  int ack_sent = 0, timeout = 0; // no timeout at first
+  int ack_sent = 0, timeout = 0, done = 0; // no timeout at first
 
   // define struct to handle timeout (only on receive calls)
   struct timeval tv;
-  tv.tv_sec = 0; // 0 seconds timeout at first
+  tv.tv_sec = 0; // no timeout at first
   tv.tv_usec = 0;
 
   // set timeout
@@ -99,21 +105,22 @@ int reliable_udp_recvfrom(int socket_fd, char *msg_buff, int msg_bufflen, struct
     return -2;
   }
 
-
-
-  // we recv the UDP packet and send an ack, if we don't receive the  message we
+  // we recv the UDP packet and send an ack, if we don't receive the message we
   // wait for another attempt, or if our ack isn't received we try again up to
   // MAX_N_ATTEMPTS times, after which we give up
-  while (attempts < MAX_N_ATTEMPTS) {
+  while (attempts < MAX_N_ATTEMPTS || done == false) {
     // listen for the message
     tmp_recv_size = recvfrom(socket_fd, msg_buff, msg_bufflen, 0, (struct sockaddr *) &dest_addr, &addr_size);
 
-
-    printf("error is: %d\n", errno);
+    // print the current error, if any, for transparency
+    printf("Error is: %d\n", errno);
 
     // if nothing is received before timeout (errno checks) or the socket fails
     // while without a timeout
     if (tmp_recv_size < 0 || errno == EAGAIN || errno == EWOULDBLOCK) {
+      // reset the error variable
+      errno = 0;
+
       // if it failed and we had previously sent an ack, that's because the ack
       // was received and so the server didn't send anything back, so we can
       // safely break
@@ -123,15 +130,8 @@ int reliable_udp_recvfrom(int socket_fd, char *msg_buff, int msg_bufflen, struct
       // in this case the message wasnt received, so put something on the client
       // to exit the application because of network error
       if (ack_sent) {
-        // success, let's reset the socket file descriptor to wait infinitely
-        tv.tv_sec = 0;
-
-        // set timeout
-        if (setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
-          printf("Could not set timeout on socket.\n");
-          return -2;
-        }
         // exit for success
+        done = 1; // just to make sure we exit the while loop
         break; // assume ack was received since it timed out
       }
       // no ack, we just didn't receive the message
@@ -141,7 +141,7 @@ int reliable_udp_recvfrom(int socket_fd, char *msg_buff, int msg_bufflen, struct
         if (timeout == 0) {
           // it just failed on a non timeout socket
           printf("Error receiving on no timeout socket.\n");
-          return -4;
+          return -3;
         }
         else {
           // else we just keep retrying
@@ -154,16 +154,10 @@ int reliable_udp_recvfrom(int socket_fd, char *msg_buff, int msg_bufflen, struct
     }
     // message received, we send an ack
     else {
-
-
-	printf("tmprecvsize: %d\n", tmp_recv_size);
+      printf("Message received!"); // for debugging
 
       // store message received size
       msg_recv_size = tmp_recv_size;
-
-
-	printf("recv msg!\n");
-
 
       // now that the message is received, we need to re-set a timeout on the socket so that if no
       // further message attempt happens, it successfully exists
@@ -174,17 +168,18 @@ int reliable_udp_recvfrom(int socket_fd, char *msg_buff, int msg_bufflen, struct
       tv.tv_sec = 4; // 4 seconds
       timeout = 4; // set timeout for checking in if statement
 
-      // set timeout
+      // re-set timeout
       if (setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
         printf("Could not re-set timeout on socket.\n");
-        return -2;
+        return -4;
       }
 
       // send message reception acknowledgement
       if (sendto(socket_fd, "ACK", strlen("ACK"), 0, (struct sockaddr *) &dest_addr, addr_size) < 0) {
         printf("Unable to send ack to the destination.\n");
-        return -3;
+        return -5;
       }
+
       // ack sent
       ack_sent = 1;
     }
@@ -192,9 +187,9 @@ int reliable_udp_recvfrom(int socket_fd, char *msg_buff, int msg_bufflen, struct
 
   // if we have less than the max number of attempts, that means the sending
   // succeeded, so we return a success
-  if (attempts < MAX_N_ATTEMPTS) {
+  if (attempts < MAX_N_ATTEMPTS || done == true) {
     // return the size of the message sent, as per the usual socket send/recv functions
-    return msg_recv_size;
+    return msg_sent_size;
   }
   // if it is equal, it failed so we return an error
   else {

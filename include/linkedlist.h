@@ -5,7 +5,7 @@
  *
  * Hole Punching Server version: 1.0
  *
- * Last modification: 12/24/2019
+ * Last modified: 12/27/2019
  *
  * By: Philippe Noël
  *
@@ -16,16 +16,17 @@
 #include <stdio.h>
 #include <stdint.h>
 
-// simple struct to hold the client endpoints
-struct client {
-  uint32_t ipv4; // IPv4 of the client to connect to another client
-  uint16_t port; // port of the client to connect to another client
-  uint32_t target_ipv4; // IPv4 of VM to connect to if this is a local device
+// a small struct to hold a client pair endpoints
+struct pair {
+    int client_ip;
+    short client_port;
+    int server_ip;
+    short server_port;
 };
 
 // generic linked list node type
 struct gll_node_t {
-  struct client *data;
+  struct pair *data;
   struct gll_node_t *prev;
   struct gll_node_t *next;
 };

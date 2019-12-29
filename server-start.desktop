@@ -1,0 +1,5 @@
+[Desktop Entry]
+Type=Application
+Exec=~/fractal-udpholepunch-server/server-script.sh
+Hidden=true
+Name=Hole Punch Server Script
