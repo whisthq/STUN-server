@@ -28,32 +28,25 @@
 #define HOLEPUNCH_PORT 48800 // Fractal default holepunch port
 #define MAX_QUEUE_LEN 100 // arbitrary, maximum concurrent pairing requests waiting
 
-// a small struct to hold a UDP client endpoint
+// a small struct to hold a UDP client endpoint, pair struct in linkedlist.h
 struct client {
     int host;
     short port;
-};
-
-// a small struct to hold a client pair endpoints
-struct pair {
-    int client_ip;
-    short client_port;
-    int server_ip;
-    short server_port;
 };
 
 // main server loop
 int main(void) {
   // punch vars
   struct sockaddr_in si_me, si_other; // our endpoint and the client's
-  int s, i, j, recv_size, paired, slen = sizeof(si_other), n = 0; // counters
+  int s, i, j, recv_size, paired, n = 0; // counters
+  socklen_t slen = sizeof(si_other); // addr len
   char buf[BUFLEN]; // receive buffer
 
   // linked list to hold the connection requests (for asynchronous handling)
   struct gll_t *pairs_list = gll_init();
 
   // vars to hold the current node and current client or pair we are looking at
-  struct gll_node_t *curr_node, paired_node;
+  struct gll_node_t *curr_node, *paired_node;
   struct client client_endpoint; // struct to hold VM or local client endpoint for sending
   struct pair tmp; // new pair node to be inserted in the list
 
