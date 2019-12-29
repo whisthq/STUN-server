@@ -18,6 +18,7 @@ You can then clone this repository and build with `make`.
 
 A hole punching server, once started, should run forever, and so we can set it to automatically restart after a crash with the following:
 - Type `cd fractal-udpholepunch-server`
+- Type `mkdir -p ~/.config/autostart`
 - Type `mv server-start.desktop ~/.config/autostart`
 
 The bash script `server-script.sh` will now run at startup of the Lightsail instance and will re-run automatically if it crashes.
