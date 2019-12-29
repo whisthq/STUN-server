@@ -108,7 +108,7 @@ int reliable_udp_recvfrom(int socket_fd, char *msg_buff, int msg_bufflen, struct
   // we recv the UDP packet and send an ack, if we don't receive the message we
   // wait for another attempt, or if our ack isn't received we try again up to
   // MAX_N_ATTEMPTS times, after which we give up
-  while (attempts < MAX_N_ATTEMPTS || done == false) {
+  while (attempts < MAX_N_ATTEMPTS || !done) {
     // listen for the message
     tmp_recv_size = recvfrom(socket_fd, msg_buff, msg_bufflen, 0, (struct sockaddr *) &dest_addr, &addr_size);
 
@@ -187,9 +187,9 @@ int reliable_udp_recvfrom(int socket_fd, char *msg_buff, int msg_bufflen, struct
 
   // if we have less than the max number of attempts, that means the sending
   // succeeded, so we return a success
-  if (attempts < MAX_N_ATTEMPTS || done == true) {
+  if (attempts < MAX_N_ATTEMPTS || done) {
     // return the size of the message sent, as per the usual socket send/recv functions
-    return msg_sent_size;
+    return msg_recv_size;
   }
   // if it is equal, it failed so we return an error
   else {
