@@ -32,6 +32,7 @@ The server can be run with `nohup ./server &` and will run forever, hole-punchin
 When opening an SSH terminal while the hole punching server code is still running, which it should, you need to kill the process before restarting it or modifying it. This can be done with:
 
  `pidof server`                      -- find the pid of process named "server"
+ 
  `kill <pid of server>`              -- kill the process by pid.
 
 ## Running Servers
