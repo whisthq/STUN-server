@@ -25,9 +25,16 @@ The bash script `server-script.sh` will now run at startup of the Lightsail inst
 
 ## Running
 
-When opening an SSH terminal while the hole punching server code is still running, you will not see the code run but it will be in the background. If you try to run the server, the socket will still be bound to the port and it will be unable to bind again. In such a case, reboot the AWS Lightsail Ubuntu 18.04 instance with `sudo reboot` and restart the server.
+Since this server is getting started through an SSH connection to the Lightsail instance, it needs to be started with `nohup` to prevent it from timing-out when the SSH shell gets closed. 
 
-The server can be run with `./server` and will run forever, hole-punching a direct UDP connection between a Fractal cloud computer and a client device sequentially as it receives the requests whenever a user logs in.
+The server can be run with `nohup ./server &` and will run forever, hole-punching a direct UDP connection between a Fractal cloud computer and a client device sequentially as it receives the requests whenever a user logs in.
+
+When opening an SSH terminal while the hole punching server code is still running, which it should, you need to kill the process before restarting it or modifying it. This can be done with:
+
+====
+ `pidof server`                      -- find the pid of process named "server"
+ `kill <pid of server>`              -- kill the process by pid.
+====
 
 ## Running Servers
 

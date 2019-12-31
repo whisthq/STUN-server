@@ -1,3 +1,3 @@
 #!/bin/bash
 
-while true; do ./server && break; done
+while true; do (nohup ./server &) && break; done
