@@ -11,29 +11,21 @@ Each AWS Lightsail server, before making and running the server code, needs to b
 - sudo apt-get install git
 - sudo apt-get install make
 - sudo apt-get install gcc
+- sudo apt-get install daemon
 
 You can then clone this repository and build with `make`.
 
-## Autostart and Autorestart
+## Running and Autorestart
 
-A hole punching server, once started, should run forever, and so we can set it to automatically restart after a crash with the following:
-- Type `cd fractal-udpholepunch-server`
-- Type `mkdir -p ~/.config/autostart`
-- Type `mv server-start.desktop ~/.config/autostart`
+A hole punching server, once started, should run forever, and so we can start it so that it to automatically restart after a crash with the following:
 
-The bash script `server-script.sh` will now run at startup of the Lightsail instance and will re-run automatically if it crashes.
+`daemon --name="holepunchserver" --respawn --output=holepunchlog.txt server`
 
-## Running
+The program will now run in the background, meaning it is safe to exit the SSH shell connection to the Lightsail instance, without the program stopping, and it will automatically restart if it crashes thanks to the `--respawn` command.
 
-Since this server is getting started through an SSH connection to the Lightsail instance, it needs to be started with `nohup` to prevent it from timing-out when the SSH shell gets closed. 
+If you want to stop the daemon process, you can do it with the following command:
 
-The server can be run with `nohup ./server &` and will run forever, hole-punching a direct UDP connection between a Fractal cloud computer and a client device sequentially as it receives the requests whenever a user logs in.
-
-When opening an SSH terminal while the hole punching server code is still running, which it should, you need to kill the process before restarting it or modifying it. This can be done with:
-
- `pidof server`                      -- find the pid of process named "server"
- 
- `kill <pid of server>`              -- kill the process by pid.
+`daemon --name="holepunchserver" --stop`
 
 ## Running Servers
 
