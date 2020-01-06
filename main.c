@@ -74,7 +74,6 @@ int main(void) {
   // main hole punching loop
   while (1) {
     // index of matched pair in list, -1 if no pair matched yet
-    printf("Listening for new connection...\n");
     paired = -1;
     exists = -1;
     // when a new client sends a datagram connection request...
@@ -96,13 +95,6 @@ int main(void) {
     for (i = 0; i < n && (paired == -1) && (exists == -1); i++) {
       // get the current node we are
       curr_node = gll_find_node(pairs_list, i);
-
-      printf("Searching...\n");
-      printf("Found node with client %d:%d and server %d:%d\n", 
-        curr_node->data->client_ip,
-        curr_node->data->client_port,
-        curr_node->data->server_ip,
-        curr_node->data->server_port);
       // if the request is from a local client
       if (origin == 'C') {
         // if the request target IP matches the server IP of the node, it's a pair
