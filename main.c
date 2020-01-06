@@ -97,6 +97,12 @@ int main(void) {
       // get the current node we are
       curr_node = gll_find_node(pairs_list, i);
 
+      printf("Searching...\n");
+      printf("Found node with client %d:%d and server %d:%d\n", 
+        curr_node->data->client_ip,
+        curr_node->data->client_port,
+        curr_node->data->server_ip,
+        curr_node->data->server_port);
       // if the request is from a local client
       if (origin == 'C') {
         // if the request target IP matches the server IP of the node, it's a pair
