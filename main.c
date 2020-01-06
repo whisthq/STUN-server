@@ -106,10 +106,8 @@ int main(void) {
       // if the request is from a local client
       if (origin == 'C') {
         // if the request target IP matches the server IP of the node, it's a pair
-        if (curr_node->data->client_ip == si_other.sin_addr.s_addr) {
+        if ((curr_node->data->client_ip == si_other.sin_addr.s_addr) && (curr_node->data->server_port < 0)) {
           printf("Client already found. Updating IP and port information.\n");
-          curr_node->data->client_ip = si_other.sin_addr.s_addr;
-          curr_node->data->client_port = si_other.sin_port;
           curr_node->data->server_ip = inet_addr(target_ip);
           exists = 1;
         }
@@ -125,7 +123,7 @@ int main(void) {
       }
       // if the request is from a VM
       else {
-        if (curr_node->data->server_ip == si_other.sin_addr.s_addr) {
+        if ((curr_node->data->server_ip == si_other.sin_addr.s_addr) && (curr_node->data->client_ip < 0)) {
           printf("Server already found. Updating IP and port information.\n");
           curr_node->data->server_ip = si_other.sin_addr.s_addr;
           curr_node->data->server_port = si_other.sin_port;
@@ -198,6 +196,7 @@ int main(void) {
           tmp.client_ip = si_other.sin_addr.s_addr;
           tmp.client_port = si_other.sin_port;
           tmp.server_ip = inet_addr(target_ip);
+          tmp.server_port = -1;
 
           // create a node for this new client and add it to the linked list
           if (gll_push_end(pairs_list, &tmp) < 0) {
@@ -212,6 +211,8 @@ int main(void) {
           // create a pair struct to insert into the linked list  and fill it
           tmp.server_ip = si_other.sin_addr.s_addr;
           tmp.server_port = si_other.sin_port;
+          tmp.client_ip = -1;
+          tmp.client_port = -1;
 
           // create a node for this new VM and add it to the linked list
           if (gll_push_end(pairs_list, &tmp) < 0) {
