@@ -74,6 +74,7 @@ int main(void) {
   // main hole punching loop
   while (1) {
     // index of matched pair in list, -1 if no pair matched yet
+    printf("Listening for new connection...\n");
     paired = -1;
     exists = -1;
     // when a new client sends a datagram connection request...
@@ -137,7 +138,7 @@ int main(void) {
     }
 
     // if we have a matched pair
-    if (paired > -1 && exists == -1) {
+    if (paired > -1) {
       // get the node of the matched pair
       paired_node = gll_find_node(pairs_list, paired);
 
