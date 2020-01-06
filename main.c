@@ -132,7 +132,7 @@ int main(void) {
     }
 
     // if we have a matched pair
-    if (paired > -1 && exists > -1) {
+    if (paired > -1 && exists == -1) {
       // get the node of the matched pair
       paired_node = gll_find_node(pairs_list, paired);
 
@@ -177,7 +177,7 @@ int main(void) {
       n -= 1; // decrement linked list node count
     }
     // if we don't have a matched pair, we will add to the linked list
-    else if (paired == -1 && exists > -1) {
+    else if (paired == -1 && exists == -1) {
       // only add to the list if it's smaller than the max queue size
       if (n < MAX_QUEUE_LEN) {
         // if it's a request from a local client
