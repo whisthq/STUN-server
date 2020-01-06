@@ -38,7 +38,7 @@ struct client {
 int main(void) {
   // punch vars
   struct sockaddr_in si_me, si_other; // our endpoint and the client's
-  int s, i, recv_size, paired, n = 0; // counters
+  int s, i, recv_size, paired, exists, n = 0; // counters
   socklen_t slen = sizeof(si_other); // addr len
   char buf[BUFLEN]; // receive buffer
 
@@ -75,7 +75,7 @@ int main(void) {
   while (1) {
     // index of matched pair in list, -1 if no pair matched yet
     paired = -1;
-
+    exists = -1;
     // when a new client sends a datagram connection request...
     if ((recv_size = recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen)) < 0) {
       printf("Could not receive UDP packet from client.\n");
@@ -92,14 +92,17 @@ int main(void) {
 
     // while we don't have a full pair yet, we look through the list and see
     // if this new request can match a pair
-    for (i = 0; i < n && (paired == -1); i++) {
+    for (i = 0; i < n && (paired == -1) && (exists == -1); i++) {
       // get the current node we are
       curr_node = gll_find_node(pairs_list, i);
 
       // if the request is from a local client
       if (origin == 'C') {
         // if the request target IP matches the server IP of the node, it's a pair
-        if (inet_addr(target_ip) == curr_node->data->server_ip) {
+        if (curr_node->data->client_ip == si_other.sin_addr.s_addr) {
+          exists = 1;
+        }
+        else if (inet_addr(target_ip) == curr_node->data->server_ip) {
           // fill the node wih the client endpoint
           curr_node->data->client_ip = si_other.sin_addr.s_addr;
           curr_node->data->client_port = si_other.sin_port;
@@ -111,6 +114,9 @@ int main(void) {
       }
       // if the request is from a VM
       else {
+        if (curr_node->data->server_ip == si_other.sin_addr.s_addr) {
+          exists = 1;
+        }
         // if the target IP matches the received VM IP matches, it's a pair
         if (curr_node->data->server_ip == si_other.sin_addr.s_addr) {
           // fill the VM endpoint
@@ -124,7 +130,7 @@ int main(void) {
     }
 
     // if we have a matched pair
-    if (paired > -1) {
+    if (paired > -1 && exists > -1) {
       // get the node of the matched pair
       paired_node = gll_find_node(pairs_list, paired);
 
@@ -169,7 +175,7 @@ int main(void) {
       n -= 1; // decrement linked list node count
     }
     // if we don't have a matched pair, we will add to the linked list
-    else {
+    else if (paired == -1 && exists > -1) {
       // only add to the list if it's smaller than the max queue size
       if (n < MAX_QUEUE_LEN) {
         // if it's a request from a local client
