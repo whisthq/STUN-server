@@ -100,6 +100,7 @@ int main(void) {
       if (origin == 'C') {
         // if the request target IP matches the server IP of the node, it's a pair
         if (curr_node->data->client_ip == si_other.sin_addr.s_addr) {
+          printf("Client already exists and is waiting for a server\n");
           exists = 1;
         }
         else if (inet_addr(target_ip) == curr_node->data->server_ip) {
@@ -115,6 +116,7 @@ int main(void) {
       // if the request is from a VM
       else {
         if (curr_node->data->server_ip == si_other.sin_addr.s_addr) {
+          printf("Server already exists and is waiting for a client\n");
           exists = 1;
         }
         // if the target IP matches the received VM IP matches, it's a pair
