@@ -67,7 +67,7 @@ int main(void) {
 
   // bind socket to this endpoint
   if (bind(s, (struct sockaddr*) &si_me, sizeof(si_me)) < 0) {
-    printf("Failed to bind socket. `Sudo reboot` and try again.\n");
+    printf("Failed to bind socket. `sudo reboot` and try again.\n");
     return -2;
   }
 
@@ -100,7 +100,7 @@ int main(void) {
         // if the request target IP matches the server IP of the node, it's a pair
         if ((curr_node->data->client_ip == si_other.sin_addr.s_addr) && (curr_node->data->server_port < 0)) {
           printf("Client already found. Updating IP and port information.\n");
-          curr_node->data->server_ip = inet_addr(target_ip);
+          gll_remove(pairs_list, i); 
           exists = 1;
         }
         else if (inet_addr(target_ip) == curr_node->data->server_ip) {
@@ -117,8 +117,7 @@ int main(void) {
       else {
         if ((curr_node->data->server_ip == si_other.sin_addr.s_addr) && (curr_node->data->client_ip < 0)) {
           printf("Server already found. Updating IP and port information.\n");
-          curr_node->data->server_ip = si_other.sin_addr.s_addr;
-          curr_node->data->server_port = si_other.sin_port;
+          gll_remove(pairs_list, i);
           exists = 1;
         }
         // if the target IP matches the received VM IP matches, it's a pair
@@ -179,7 +178,7 @@ int main(void) {
       n -= 1; // decrement linked list node count
     }
     // if we don't have a matched pair, we will add to the linked list
-    else if (paired == -1 && exists == -1) {
+    else {
       // only add to the list if it's smaller than the max queue size
       if (n < MAX_QUEUE_LEN) {
         // if it's a request from a local client
