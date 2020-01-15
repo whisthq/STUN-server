@@ -48,7 +48,6 @@ int main(void) {
   // vars to hold the current node and current client or pair we are looking at
   struct gll_node_t *curr_node, *paired_node;
   struct client client_endpoint = {0}; // struct to hold VM or local client endpoint for sending
-  struct pair tmp; // new pair node to be inserted in the list
 
   // initialize endpoints for a node for reassignment later
   int client_ip, server_ip;
