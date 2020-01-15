@@ -76,6 +76,7 @@ int main(void) {
     // index of matched pair in list, -1 if no pair matched yet
     paired = -1;
     exists = -1;
+
     // when a new client sends a datagram connection request...
     if ((recv_size = recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen)) < 0) {
       printf("Could not receive UDP packet from client.\n");
@@ -87,8 +88,8 @@ int main(void) {
     // parse the buffer
     char origin = buf[recv_size - 1]; // whether it's from a VM or local client
     char target_ip[recv_size - 1]; // target IP, if from a local client
-    strcpy(target_ip, buf); // fill target IP
-    target_ip[recv_size - 1] = 0;
+    memcpy(target_ip, buf, recv_size - 1); // fill target IP
+    target_ip[recv_size - 1] = '\0';
 
     // while we don't have a full pair yet, we look through the list and see
     // if this new request can match a pair
@@ -181,16 +182,17 @@ int main(void) {
     else {
       // only add to the list if it's smaller than the max queue size
       if (n < MAX_QUEUE_LEN) {
+        struct pair* pair_info = malloc(sizeof(struct pair));
         // if it's a request from a local client
         if (origin == 'C') {
           // create a pair struct to insert into the linked list  and fill it
-          tmp.client_ip = si_other.sin_addr.s_addr;
-          tmp.client_port = si_other.sin_port;
-          tmp.server_ip = inet_addr(target_ip);
-          tmp.server_port = -1;
+          pair_info->client_ip = si_other.sin_addr.s_addr;
+          pair_info->client_port = si_other.sin_port;
+          pair_info->server_ip = inet_addr(target_ip);
+          pair_info->server_port = -1;
 
           // create a node for this new client and add it to the linked list
-          if (gll_push_end(pairs_list, &tmp) < 0) {
+          if (gll_push_end(pairs_list, pair_info) < 0) {
             printf("Unable to add pair struct to end of client list.\n");
             return -6;
           }
@@ -200,13 +202,13 @@ int main(void) {
         // if it's a request from a VM
         else {
           // create a pair struct to insert into the linked list  and fill it
-          tmp.server_ip = si_other.sin_addr.s_addr;
-          tmp.server_port = si_other.sin_port;
-          tmp.client_ip = -1;
-          tmp.client_port = -1;
+          pair_info->server_ip = si_other.sin_addr.s_addr;
+          pair_info->server_port = si_other.sin_port;
+          pair_info->client_ip = -1;
+          pair_info->client_port = -1;
 
           // create a node for this new VM and add it to the linked list
-          if (gll_push_end(pairs_list, &tmp) < 0) {
+          if (gll_push_end(pairs_list, pair_info) < 0) {
             printf("Unable to add pair struct to end of client list.\n");
             return -7;
           }
