@@ -116,11 +116,12 @@ int main(void) {
       }
       // if the request is from a VM
       else {
-        if ((curr_node->data->server_ip == si_other.sin_addr.s_addr) && (curr_node->data->client_ip < 0)) {
+        if ((curr_node->data->server_ip == si_other.sin_addr.s_addr) && (curr_node->data->client_ip == 0)) {
           printf("Server already found. Updating IP and port information.\n");
           gll_remove(pairs_list, i);
           exists = 1;
         }
+
         // if the target IP matches the received VM IP matches, it's a pair
         if (curr_node->data->server_ip == si_other.sin_addr.s_addr) {
           // fill the VM endpoint
@@ -189,7 +190,7 @@ int main(void) {
           pair_info->client_ip = si_other.sin_addr.s_addr;
           pair_info->client_port = si_other.sin_port;
           pair_info->server_ip = inet_addr(target_ip);
-          pair_info->server_port = -1;
+          pair_info->server_port = 0;
 
           // create a node for this new client and add it to the linked list
           if (gll_push_end(pairs_list, pair_info) < 0) {
@@ -204,8 +205,8 @@ int main(void) {
           // create a pair struct to insert into the linked list  and fill it
           pair_info->server_ip = si_other.sin_addr.s_addr;
           pair_info->server_port = si_other.sin_port;
-          pair_info->client_ip = -1;
-          pair_info->client_port = -1;
+          pair_info->client_ip = 0;
+          pair_info->client_port = 0;
 
           // create a node for this new VM and add it to the linked list
           if (gll_push_end(pairs_list, pair_info) < 0) {
