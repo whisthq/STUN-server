@@ -38,7 +38,7 @@ struct client {
 int main(void) {
   // punch vars
   struct sockaddr_in si_me, si_other; // our endpoint and the client's
-  int s, i, recv_size, paired, exists, n = 0; // counters
+  int s, i, recv_size, paired, exists; // counters
   socklen_t slen = sizeof(si_other); // addr len
   char buf[BUFLEN]; // receive buffer
 
@@ -93,7 +93,7 @@ int main(void) {
 
     // while we don't have a full pair yet, we look through the list and see
     // if this new request can match a pair
-    for (i = 0; i < n && (paired == -1) && (exists == -1); i++) {
+    for (i = 0; i < pairs_list->size && (paired == -1) && (exists == -1); i++) {
       // get the current node we are
       curr_node = gll_find_node(pairs_list, i);
       // if the request is from a local client
@@ -176,12 +176,11 @@ int main(void) {
 
       // now that the pairing and hole punching happened, we can remove this node
       gll_remove(pairs_list, paired); // remove whole struct for a pair
-      n -= 1; // decrement linked list node count
     }
     // if we don't have a matched pair, we will add to the linked list
     else {
       // only add to the list if it's smaller than the max queue size
-      if (n < MAX_QUEUE_LEN) {
+      if (pairs_list->size < MAX_QUEUE_LEN) {
         struct pair* pair_info = malloc(sizeof(struct pair));
         // if it's a request from a local client
         if (origin == 'C') {
@@ -215,8 +214,6 @@ int main(void) {
           printf("Added server with host IP %s:%d to the queue\n",
               inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port));
         }
-        // increment list size
-        n++;
       }
     } // end of if < MAX_QUEUE_LEN
   } // end of connection listening for loop
