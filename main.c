@@ -116,6 +116,7 @@ int main(void) {
       }
       // if the request is from a VM
       else {
+          printf("CLIENTIP%d\n", curr_node->data->client_ip);
         if ((curr_node->data->server_ip == si_other.sin_addr.s_addr) && (curr_node->data->client_ip == 0)) {
           printf("Server already found. Updating IP and port information.\n");
           gll_remove(pairs_list, i);
