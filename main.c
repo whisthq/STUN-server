@@ -86,9 +86,9 @@ int main(void) {
 
     // parse the buffer
     char origin = buf[recv_size - 1]; // whether it's from a VM or local client
-    char target_ip[recv_size]; // target IP, if from a local client
+    char target_ip[recv_size - 1]; // target IP, if from a local client
     memcpy(target_ip, buf, recv_size - 1); // fill target IP
-    target_ip[recv_size] = '\0';
+    target_ip[recv_size - 1] = '\0';
 
     // while we don't have a full pair yet, we look through the list and see
     // if this new request can match a pair
