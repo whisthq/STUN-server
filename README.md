@@ -1,4 +1,4 @@
-# Fractal UDP Hole Punching Server
+# Fractal UDP STUN Server
 
 This repository contains the implementation of the Fractal hole punching server that initiates connection between a Fractal cloud computer and a client device.
 
@@ -32,7 +32,6 @@ It will run in the background and restart automatically if it exits. To see if i
 
 ## Running Servers
 
-Currently there are 1 UDP hole punching servers active:
-- Fractal-UDPHolePunchServer-1
-    - Public IP: 34.200.170.47
-    - Location: US-East 1 (Northern Virginia)
+Currently there are 0 UDP hole punching servers active:
+
+The servers are hosted at: https://lightsail.aws.amazon.com/ls/webapp/home/instances
