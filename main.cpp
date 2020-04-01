@@ -64,12 +64,47 @@ double time() {
 atomic<int> tcp_socket;
 atomic<bool> tcp_connection_pending;
 
-struct tcp_connection_data_t {
+typedef struct {
   int new_tcp_socket;
   struct sockaddr_in si_client;
   stun_request_t request;
   int recv_size;
-} tcp_connection_data;
+} tcp_connection_data_t;
+
+pthread_mutex_t tcp_connection_data_mutex = PTHREAD_MUTEX_INITIALIZER;
+tcp_connection_data_t tcp_connection_data;
+
+void* handle_tcp_response(void* vargp) {
+  tcp_connection_data_t* handle_tcp_response_data = (tcp_connection_data_t*)vargp;
+  struct sockaddr_in si_client = handle_tcp_response_data->si_client;
+  int new_tcp_socket = handle_tcp_response_data->new_tcp_socket;
+  delete handle_tcp_response_data;
+
+  int recv_size;
+  stun_request_t request;
+  if ((recv_size = read(new_tcp_socket, &request, sizeof(request))) < 0) {
+    printf("Failed to TCP read(3)\n");
+    return NULL;
+  }
+
+  while(true) {
+    while(tcp_connection_pending);
+
+    pthread_mutex_lock(&tcp_connection_data_mutex);
+    if (tcp_connection_pending) {
+      pthread_mutex_unlock(&tcp_connection_data_mutex);
+      continue;
+    }
+    tcp_connection_data.si_client = si_client;
+    tcp_connection_data.new_tcp_socket = new_tcp_socket;
+    tcp_connection_data.request = request;
+    tcp_connection_data.recv_size = recv_size;
+    tcp_connection_pending = true;
+    pthread_mutex_unlock(&tcp_connection_data_mutex);
+
+    break;
+  }
+}
 
 void* grab_tcp_connection(void* vargp) {
   while(true) {
@@ -80,7 +115,6 @@ void* grab_tcp_connection(void* vargp) {
 
     struct sockaddr_in si_client;
     socklen_t slen = sizeof(si_client);
-    stun_request_t request;
 
     int new_tcp_socket;
     if ((new_tcp_socket = accept(tcp_socket, (struct sockaddr *)&si_client, &slen)) < 0) {
@@ -88,19 +122,12 @@ void* grab_tcp_connection(void* vargp) {
       continue;
     }
 
-    int recv_size;
-    if ((recv_size = read(new_tcp_socket, &request, sizeof(request))) < 0) {
-      printf("Failed to TCP read(3)\n");
-      continue;
-    }
+    tcp_connection_data_t* handle_tcp_response_data = new tcp_connection_data_t;
+    handle_tcp_response_data->si_client = si_client;
+    handle_tcp_response_data->new_tcp_socket = new_tcp_socket;
 
-    while(tcp_connection_pending);
-
-    tcp_connection_data.si_client = si_client;
-    tcp_connection_data.new_tcp_socket = new_tcp_socket;
-    tcp_connection_data.request = request;
-    tcp_connection_data.recv_size = recv_size;
-    tcp_connection_pending = true;
+    pthread_t thread_id;
+    pthread_create(&thread_id, NULL, handle_tcp_response, handle_tcp_response_data);
   }
 }
 
@@ -163,8 +190,8 @@ int main(void) {
   // main hole punching loop
   while (1) {
     stun_request_t request; // receive buffer
-    //printf("Receiving...\n");
-    // when a new client sends a datagram connection request...
+
+    // When a new client sends a datagram connection request...
     if ((recv_size = recvfrom(s, &request, sizeof(request), 0, (struct sockaddr *) &si_client, &slen)) < 0) {
       if (errno == EAGAIN) {
         recv_size = 0;
@@ -248,12 +275,12 @@ int main(void) {
 	  entry.private_port = si_client.sin_port;
 
 	  // Notify the server about the STUN connection
-          sendto(server_socket, &entry, sizeof(entry), 0, (struct sockaddr *) &si_server, sizeof(si_server));
+          sendto(server_socket, &entry, sizeof(entry), MSG_NOSIGNAL, (struct sockaddr *) &si_server, sizeof(si_server));
 	}
 
 	// Return answer to STUN request
 	printf("Responding to STUN request\n");
-        sendto(connection_socket, &request.entry, sizeof(request.entry), 0, (struct sockaddr *) &si_client, sizeof(si_client));
+        sendto(connection_socket, &request.entry, sizeof(request.entry), MSG_NOSIGNAL, (struct sockaddr *) &si_client, sizeof(si_client));
       } else if (request.type == POST_INFO) {
 	int ip = si_client.sin_addr.s_addr;
 	request.entry.ip = ip;
