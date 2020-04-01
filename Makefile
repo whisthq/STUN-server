@@ -1,11 +1,11 @@
 # specify compiler
-CC = gcc
+CC = g++
 
 # specify bin name
-BIN_NAME = server
+BIN_NAME = stun
 
 # objects to build
-OBJS = include/socket.o include/linkedlist.o main.o
+OBJS = main.o
 
 # warnings
 WARNINGS = \
@@ -22,26 +22,21 @@ WARNINGS = \
   -Wuninitialized \
   -Wno-conversion
 
-# C warnings
-CWARNINGS := $(WARNINGS) \
-  -Wmissing-prototypes \
-  -Wnested-externs \
-  -Wstrict-prototypes
-
 # C flags
-CFLAGS := -g -fPIC -std=c99 $(CWARNINGS)
+FLAGS := -g -fPIC
 
 # make all objects
 all: clean $(OBJS)
 	$(CC) -o $(BIN_NAME) $(OBJS)
 
 # apply C flags to all C files
-%.o: %.c Makefile
-	$(CC) $(CFLAGS) -fPIC -MMD -MP -c $< -o $@
+%.o: %.cpp Makefile
+	$(CC) $(FLAGS) -fPIC -MMD -MP -c $< -o $@
 
 # clean directory
 clean:
-	-rm -f socket.o linkedlist.o main.o server *.d
+	-rm -f main.o stun *.d
 
 # clear
 .PHONY: all clean
+
