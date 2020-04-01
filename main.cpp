@@ -30,8 +30,8 @@ using namespace std;
 // a small struct to hold a UDP client endpoint, pair struct in linkedlist.h
 typedef struct {
     unsigned int ip;
-    short private_port;
-    short public_port;
+    unsigned short private_port;
+    unsigned short public_port;
 } stun_entry_t;
 
 typedef enum stun_request_type {
@@ -121,6 +121,18 @@ int main(void) {
           printf("Could not find private_port associated with %d!\n", port);
 	} else {
           request.entry.private_port = private_port;	
+
+	  struct sockaddr_in si_server;
+	  si_server.sin_family = AF_INET; 
+	  si_server.sin_addr.s_addr = request.entry.ip; 
+	  si_server.sin_port = request.entry.private_port; 
+
+	  stun_entry_t entry;
+	  entry.ip = si_other.sin_addr.s_addr;
+	  entry.private_port = si_other.sin_port;
+
+	  // Notify the server about the STUN connection
+          sendto(s, &entry, sizeof(entry), 0, (struct sockaddr *) &si_server, sizeof(si_server));
 	}
         sendto(s, &request.entry, sizeof(request.entry), 0, (struct sockaddr *) &si_other, sizeof(si_other));
       } else if (request.type == POST_INFO) {
