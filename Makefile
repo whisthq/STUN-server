@@ -23,15 +23,18 @@ WARNINGS = \
   -Wno-conversion
 
 # C flags
-FLAGS := -g -fPIC
+FLAGS := -g -fPIC -MMD -MP
+
+# libraries
+DYNAMIC_LIBS = -lpthread
 
 # make all objects
 all: clean $(OBJS)
-	$(CC) -o $(BIN_NAME) $(OBJS)
+	$(CC) -o $(BIN_NAME) $(OBJS) $(DYNAMIC_LIBS)
 
 # apply C flags to all C files
 %.o: %.cpp Makefile
-	$(CC) $(FLAGS) -fPIC -MMD -MP -c $< -o $@
+	$(CC) $(FLAGS) -c $< -o $@
 
 # clean directory
 clean:
