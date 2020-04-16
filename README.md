@@ -32,6 +32,6 @@ It will run in the background and restart automatically if it exits. To see if i
 
 ## Running Servers
 
-Currently there are 0 hole punching servers active:
+Currently there are 1 hole punching servers active:
 
 The servers are hosted at: https://lightsail.aws.amazon.com/ls/webapp/home/instances
