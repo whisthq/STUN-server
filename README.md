@@ -14,11 +14,13 @@ Each AWS Lightsail server, before making and running the server code, needs to b
 
 `sudo apt-get install make`
 
-`sudo apt-get install gcc`
+`sudo apt-get install g++`
 
 `curl -s https://packagecloud.io/install/repositories/immortal/immortal/script.deb.sh | sudo bash`
 
 `sudo apt-get install immortal`
+
+You can simply run `setup.sh` and it will take care of installing all those dependencies.
 
 You can then clone this repository, cd into it and build with `make`.
 
