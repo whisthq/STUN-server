@@ -1,4 +1,4 @@
-# Fractal UDP STUN Server
+# Fractal STUN Server
 
 This repository contains the implementation of the Fractal hole punching server that initiates connection between a Fractal cloud computer and a client device.
 
