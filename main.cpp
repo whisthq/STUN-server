@@ -12,6 +12,9 @@
  * Copyright Fractal Computers, Inc. 2019
 **/
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdarg.h>
 #include <unistd.h>
 #include <string.h>
 #include <arpa/inet.h>
@@ -23,6 +26,41 @@
 
 #define HOLEPUNCH_PORT 48800 // Fractal default holepunch port
 #define STUN_ENTRY_TIMEOUT 30000
+
+FILE* log_file = NULL;
+
+void log(const char* fmt, ...) {
+  if (!log_file) {
+    log_file = fopen("log.txt", "a");
+  }
+
+  time_t rawtime;
+  struct tm* timeinfo;
+  time( &rawtime );
+  timeinfo = localtime( &rawtime );
+  char* time_string = asctime( timeinfo );
+  time_string[strlen(time_string)-1] = '\0';
+
+  printf("%s | ", time_string);
+  fprintf(log_file, "%s | ", time_string);
+
+  va_list args;
+  va_start(args, fmt);
+
+  vprintf(fmt, args);
+  va_start(args, fmt);
+  vfprintf(log_file, fmt, args);
+  fflush(log_file);
+
+  fseek(log_file, 0, SEEK_END);
+  int sz = ftell(log_file);
+  if (sz > 5 * 1024 * 1024) {
+    printf("Moving log.txt to old_log.txt!\n");
+    fclose(log_file);
+    system("mv log.txt old_log.txt");
+    log_file = fopen("log.txt", "a");
+  }
+}
 
 #include <map>
 #include <vector>
@@ -83,7 +121,7 @@ void* handle_tcp_response(void* vargp) {
   int recv_size;
   stun_request_t request;
   if ((recv_size = read(new_tcp_socket, &request, sizeof(request))) < 0) {
-    printf("Failed to TCP read(3)\n");
+    log("Failed to TCP read(3)\n");
     return NULL;
   }
 
@@ -109,7 +147,7 @@ void* handle_tcp_response(void* vargp) {
 void* grab_tcp_connection(void* vargp) {
   while(true) {
     if (listen(tcp_socket, 3) < 0) {
-      printf("Failed to TCP listen(2)\n");
+      log("Failed to TCP listen(2)\n");
       return NULL;
     }
 
@@ -118,7 +156,7 @@ void* grab_tcp_connection(void* vargp) {
 
     int new_tcp_socket;
     if ((new_tcp_socket = accept(tcp_socket, (struct sockaddr *)&si_client, &slen)) < 0) {
-      printf("Failed to TCP accept(3)\n");
+      log("Failed to TCP accept(3)\n");
       continue;
     }
 
@@ -133,6 +171,8 @@ void* grab_tcp_connection(void* vargp) {
 
 // main server loop
 int main(void) {
+  log("Starting STUN Server...\n");
+
   // punch vars
   struct sockaddr_in si_me, si_client; // our endpoint and the client's
   int s, recv_size; // counters
@@ -144,11 +184,11 @@ int main(void) {
 
   // create the UDP socket
   if ((s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
-    printf("Could not create UDP socket.\n");
+    log("Could not create UDP socket.\n");
   }
 
   if ((tcp_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
-    printf("Could not create UDP socket.\n");
+    log("Could not create UDP socket.\n");
   }
 
   // set our endpoint (for this UDP hole punching server not behind a NAT)
@@ -159,18 +199,18 @@ int main(void) {
 
   // bind socket to this endpoint
   if (bind(s, (struct sockaddr*) &si_me, sizeof(si_me)) < 0) {
-    printf("Failed to bind socket. `sudo reboot` and try again.\n");
+    log("Failed to bind socket. `sudo reboot` and try again.\n");
     return -2;
   }
 
   int opt = 1;
   if (setsockopt(tcp_socket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)) < 0) {
-    printf("Failed to set reuseaddr socket. `sudo reboot` and try again.\n");
+    log("Failed to set reuseaddr socket. `sudo reboot` and try again.\n");
     return -2;
   }
 
   if (bind(tcp_socket, (struct sockaddr*) &si_me, sizeof(si_me)) < 0) {
-    printf("Failed to bind socket. `sudo reboot` and try again.\n");
+    log("Failed to bind socket. `sudo reboot` and try again.\n");
     return -2;
   }
 
@@ -183,7 +223,7 @@ int main(void) {
   timeout.tv_usec = 1 * 1000;
 
   if (setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout)) < 0) {
-    printf("Could not set timeout!\n");
+    log("Could not set timeout!\n");
     return -1;
   }
 
@@ -196,7 +236,7 @@ int main(void) {
       if (errno == EAGAIN) {
         recv_size = 0;
       } else {
-        printf("Could not receive UDP packet from client: %d\n", errno);
+        log("Could not receive UDP packet from client: %d\n", errno);
         return -1;
       }
     }
@@ -223,18 +263,18 @@ int main(void) {
     }
 
     // the client's public UDP endpoint data is now in si_client
-    //printf("Received packet from %s:%d.\n", inet_ntoa(si_client.sin_addr), ntohs(si_client.sin_port));
+    //log("Received packet from %s:%d.\n", inet_ntoa(si_client.sin_addr), ntohs(si_client.sin_port));
 
     if (recv_size == sizeof(request)) {
       if (request.type == ASK_INFO) {
-        printf("Received REQUEST packet from %s:%d.\n", inet_ntoa(si_client.sin_addr), ntohs(si_client.sin_port));
+        log("Received REQUEST packet from %s:%d.\n", inet_ntoa(si_client.sin_addr), ntohs(si_client.sin_port));
 
 	struct in_addr requested_addr;
 	requested_addr.s_addr = request.entry.ip;
 
 	char* original = inet_ntoa(si_client.sin_addr);
 	
-        printf("%s:%d Wants to connect to public %s:%d.\n", original, ntohs(si_client.sin_port), inet_ntoa(requested_addr), ntohs(request.entry.public_port));
+        log("%s:%d Wants to connect to public %s:%d.\n", original, ntohs(si_client.sin_port), inet_ntoa(requested_addr), ntohs(request.entry.public_port));
 
         int ip = request.entry.ip;
 	int port = request.entry.public_port;
@@ -253,7 +293,7 @@ int main(void) {
 		map_entry.time = 0;
 	      }
               private_port = entry.private_port;
-	      printf("Found port %d to public %d!\n\n", ntohs(private_port), ntohs(port));
+	      log("Found port %d to public %d!\n\n", ntohs(private_port), ntohs(port));
 	      break;
 	    }
 	  }
@@ -261,7 +301,7 @@ int main(void) {
 
 	if (private_port == -1) {
           request.entry.private_port = -1;
-          printf("Could not find private_port entry associated with %s:%d!\n\n", inet_ntoa(requested_addr), ntohs(port));
+          log("Could not find private_port entry associated with %s:%d!\n\n", inet_ntoa(requested_addr), ntohs(port));
 	} else {
           request.entry.private_port = private_port;	
 
@@ -279,7 +319,7 @@ int main(void) {
 	}
 
 	// Return answer to STUN request
-	printf("Responding to STUN request\n");
+	log("Responding to STUN request\n");
         sendto(connection_socket, &request.entry, sizeof(request.entry), MSG_NOSIGNAL, (struct sockaddr *) &si_client, sizeof(si_client));
       } else if (request.type == POST_INFO) {
 	int ip = si_client.sin_addr.s_addr;
@@ -289,7 +329,7 @@ int main(void) {
 	for(stun_map_entry_t& map_entry : stun_entries[ip]) {
 	  if(map_entry.entry.public_port == request.entry.public_port) {
             if (time() - map_entry.time > STUN_ENTRY_TIMEOUT / 1000.0) {
-              printf("POST_INFO packet from %s:%d.\n\n", inet_ntoa(si_client.sin_addr), ntohs(si_client.sin_port));
+              log("POST_INFO packet from %s:%d.\n\n", inet_ntoa(si_client.sin_addr), ntohs(si_client.sin_port));
 	    }
 	    found = true;
 	    map_entry.time = time();
@@ -301,7 +341,7 @@ int main(void) {
 	  }
 	}
 	if (!found) {
-          printf("POST_INFO packet from %s:%d.\n\n", inet_ntoa(si_client.sin_addr), ntohs(si_client.sin_port));
+          log("POST_INFO packet from %s:%d.\n\n", inet_ntoa(si_client.sin_addr), ntohs(si_client.sin_port));
 	  if (stun_entries[ip].size() > 5) {
 	    stun_entries[ip].erase(stun_entries[ip].begin());
 	  }
@@ -316,7 +356,7 @@ int main(void) {
 	}
       }
     } else {
-      printf("Incorrect size! %d instead of %d\n", recv_size, (int)sizeof(request));
+      log("Incorrect size! %d instead of %d\n", recv_size, (int)sizeof(request));
     }
   } // end of connection listening for loop
 
