@@ -18,7 +18,7 @@ Each AWS Lightsail server, before making and running the server code, needs to b
 
 `sudo apt-get install immortal`
 
-You can simply run `setup.sh` and it will take care of installing all those dependencies.
+You can simply run `./setup.sh` and it will take care of installing all those dependencies.
 
 You can then clone this repository, cd into it and build with `make`.
 
