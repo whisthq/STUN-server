@@ -1,13 +1,7 @@
 /*
- * This file creates a server that connects two clients through UDP hole punch,
+ * This file creates a STUN server that connects two clients through UDP and TCP hole punching,
  * acting as a Fractal hole punching server. This hole punching serer is
- * built for AWS Lightsail with Ubuntu 18.04.
- *
- * Hole Punching Server version: 1.0
- *
- * Last modified: 12/28/2019
- *
- * By: Philippe Noël, Ming Ying
+ * built for AWS Lightsail running Ubuntu 18.04.
  *
  * Copyright Fractal Computers, Inc. 2019
 **/
