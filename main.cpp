@@ -240,6 +240,7 @@ int main(void) {
     // Triggered a TCP listen
     if (recv_size == 0) {
       if (tcp_connection_pending) {
+        log("TCP Connection found!\n");
         si_client = tcp_connection_data.si_client;
         tcp_connection_socket = tcp_connection_data.new_tcp_socket;
         request = tcp_connection_data.request;
@@ -251,8 +252,10 @@ int main(void) {
       }
     }
 
+    const char* type = "UDP";
     int connection_socket = s;
     if (tcp_connection_socket > 0) {
+      type = "TCP";
       connection_socket = tcp_connection_socket;
     }
 
@@ -261,7 +264,7 @@ int main(void) {
 
     if (recv_size == sizeof(request)) {
       if (request.type == ASK_INFO) {
-        log("Received REQUEST packet from %s:%d.\n", inet_ntoa(si_client.sin_addr), ntohs(si_client.sin_port));
+        log("Received %s REQUEST packet from %s:%d.\n", type, inet_ntoa(si_client.sin_addr), ntohs(si_client.sin_port));
 
 	struct in_addr requested_addr;
 	requested_addr.s_addr = request.entry.ip;
@@ -323,7 +326,7 @@ int main(void) {
 	for(stun_map_entry_t& map_entry : stun_entries[ip]) {
 	  if(map_entry.entry.public_port == request.entry.public_port) {
             if (time() - map_entry.time > STUN_ENTRY_TIMEOUT / 1000.0) {
-              log("POST_INFO packet from %s:%d.\n\n", inet_ntoa(si_client.sin_addr), ntohs(si_client.sin_port));
+              log("Received %s POST_INFO packet from %s:%d.\n\n", type, inet_ntoa(si_client.sin_addr), ntohs(si_client.sin_port));
 	    }
 	    found = true;
 	    map_entry.time = time();
@@ -335,7 +338,7 @@ int main(void) {
 	  }
 	}
 	if (!found) {
-          log("POST_INFO packet from %s:%d.\n\n", inet_ntoa(si_client.sin_addr), ntohs(si_client.sin_port));
+          log("Received %s POST_INFO packet from %s:%d.\n\n", type, inet_ntoa(si_client.sin_addr), ntohs(si_client.sin_port));
 	  if (stun_entries[ip].size() > 5) {
 	    stun_entries[ip].erase(stun_entries[ip].begin());
 	  }
