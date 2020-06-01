@@ -8,9 +8,9 @@ assignees: ''
 ---
 
 **Feature Name & Description**
-A clear and consice high-level description of the feature you want to implement and how it would work.
+A clear and concise high-level description of the feature you want to implement and how it would work.
 
-**Problem Fixed**
+**The Problem It Fixes**
 A clear and concise of the problem(s) this new feature will fix.
 
 **Feature Implementation**
