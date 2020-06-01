@@ -1,39 +1,42 @@
-/*
- * This file creates a STUN server that connects two clients through UDP and TCP hole punching,
- * acting as a Fractal hole punching server. This hole punching serer is
- * built for AWS Lightsail running Ubuntu 18.04.
+/**
+ * Copyright Fractal Computers, Inc. 2020
+ * @file main.cpp
+ * @brief This file creates a STUN server that connects two clients through
+ *        UDP and TCP hole punching, acting as a Fractal hole punching server.
+ *        This hole punching server is built for AWS Lightsail running
+ *        Ubuntu 18.04.
  *
- * Copyright Fractal Computers, Inc. 2019
-**/
+ * Copyright Fractal Computers, Inc. 2020
+ */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <unistd.h>
-#include <string.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include <sys/types.h>
+#include <pthread.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <sys/time.h>
-#include <pthread.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #define HOLEPUNCH_PORT 48800 // Fractal default holepunch port
 #define STUN_ENTRY_TIMEOUT 30000
 
-FILE* log_file = NULL;
+FILE *log_file = NULL;
 
-void log(const char* fmt, ...) {
+void log(const char *fmt, ...) {
   if (!log_file) {
     log_file = fopen("log.txt", "a");
   }
 
   time_t rawtime;
   struct tm* timeinfo;
-  time( &rawtime );
-  timeinfo = localtime( &rawtime );
-  char* time_string = asctime( timeinfo );
-  time_string[strlen(time_string)-1] = '\0';
+  time(&rawtime);
+  timeinfo = localtime(&rawtime);
+  char *time_string = asctime(timeinfo);
+  time_string[strlen(time_string) - 1] = '\0';
 
   printf("%s | ", time_string);
   fprintf(log_file, "%s | ", time_string);
@@ -56,41 +59,38 @@ void log(const char* fmt, ...) {
   }
 }
 
+#include <atomic>
 #include <map>
 #include <vector>
-#include <atomic>
 
 using namespace std;
 
 // a small struct to hold a UDP client endpoint, pair struct in linkedlist.h
 typedef struct {
-    unsigned int ip;
-    unsigned short private_port;
-    unsigned short public_port;
+  unsigned int ip;
+  unsigned short private_port;
+  unsigned short public_port;
 } stun_entry_t;
 
-typedef enum stun_request_type {
-    ASK_INFO,
-    POST_INFO
-} stun_request_type_t;
+typedef enum stun_request_type { ASK_INFO, POST_INFO } stun_request_type_t;
 
 typedef struct {
-    stun_request_type_t type;
-    stun_entry_t entry;
+  stun_request_type_t type;
+  stun_entry_t entry;
 } stun_request_t;
 
 typedef struct {
-     double time;
-     int tcp_socket;
-     stun_entry_t entry;
+  double time;
+  int tcp_socket;
+  stun_entry_t entry;
 } stun_map_entry_t;
 
 map<int, vector<stun_map_entry_t>> stun_entries;
 
 double time() {
-     struct timeval tv;
-     gettimeofday(&tv, NULL);
-     return tv.tv_sec + tv.tv_usec / 1000000.0;
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  return tv.tv_sec + tv.tv_usec / 1000000.0;
 }
 
 atomic<int> tcp_socket;
@@ -106,8 +106,9 @@ typedef struct {
 pthread_mutex_t tcp_connection_data_mutex = PTHREAD_MUTEX_INITIALIZER;
 tcp_connection_data_t tcp_connection_data;
 
-void* handle_tcp_response(void* vargp) {
-  tcp_connection_data_t* handle_tcp_response_data = (tcp_connection_data_t*)vargp;
+void *handle_tcp_response(void* vargp) {
+  tcp_connection_data_t* handle_tcp_response_data =
+      (tcp_connection_data_t*) vargp;
   struct sockaddr_in si_client = handle_tcp_response_data->si_client;
   int new_tcp_socket = handle_tcp_response_data->new_tcp_socket;
   delete handle_tcp_response_data;
@@ -119,14 +120,16 @@ void* handle_tcp_response(void* vargp) {
     return NULL;
   }
 
-  while(true) {
-    while(tcp_connection_pending);
+  while (true) {
+    while (tcp_connection_pending)
+      ;
 
     pthread_mutex_lock(&tcp_connection_data_mutex);
     if (tcp_connection_pending) {
       pthread_mutex_unlock(&tcp_connection_data_mutex);
       continue;
     }
+
     tcp_connection_data.si_client = si_client;
     tcp_connection_data.new_tcp_socket = new_tcp_socket;
     tcp_connection_data.request = request;
@@ -138,8 +141,8 @@ void* handle_tcp_response(void* vargp) {
   }
 }
 
-void* grab_tcp_connection(void* vargp) {
-  while(true) {
+void* grab_tcp_connection(void *vargp) {
+  while (true) {
     if (listen(tcp_socket, 3) < 0) {
       log("Failed to TCP listen(2)\n");
       return NULL;
@@ -149,7 +152,8 @@ void* grab_tcp_connection(void* vargp) {
     socklen_t slen = sizeof(si_client);
 
     int new_tcp_socket;
-    if ((new_tcp_socket = accept(tcp_socket, (struct sockaddr *)&si_client, &slen)) < 0) {
+    if ((new_tcp_socket =
+             accept(tcp_socket, (struct sockaddr*) &si_client, &slen)) < 0) {
       log("Failed to TCP accept(3)\n");
       continue;
     }
@@ -159,7 +163,8 @@ void* grab_tcp_connection(void* vargp) {
     handle_tcp_response_data->new_tcp_socket = new_tcp_socket;
 
     pthread_t thread_id;
-    pthread_create(&thread_id, NULL, handle_tcp_response, handle_tcp_response_data);
+    pthread_create(&thread_id, NULL, handle_tcp_response,
+                   handle_tcp_response_data);
   }
 }
 
@@ -169,8 +174,8 @@ int main(void) {
 
   // punch vars
   struct sockaddr_in si_me, si_client; // our endpoint and the client's
-  int s, recv_size; // counters
-  socklen_t slen = sizeof(si_client); // addr len
+  int s, recv_size;                    // counters
+  socklen_t slen = sizeof(si_client);  // addr len
 
   // initialize endpoints for a node for reassignment later
   int client_ip, server_ip;
@@ -186,7 +191,7 @@ int main(void) {
   }
 
   // set our endpoint (for this UDP hole punching server not behind a NAT)
-  memset((char *) &si_me, 0, sizeof(si_me));
+  memset((char*) &si_me, 0, sizeof(si_me));
   si_me.sin_family = AF_INET;
   si_me.sin_port = htons(HOLEPUNCH_PORT);
   si_me.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -198,7 +203,8 @@ int main(void) {
   }
 
   int opt = 1;
-  if (setsockopt(tcp_socket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)) < 0) {
+  if (setsockopt(tcp_socket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt,
+                 sizeof(opt)) < 0) {
     log("Failed to set reuseaddr socket. `sudo reboot` and try again.\n");
     return -2;
   }
@@ -216,7 +222,8 @@ int main(void) {
   timeout.tv_sec = 0;
   timeout.tv_usec = 1 * 1000;
 
-  if (setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout)) < 0) {
+  if (setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (const char*) &timeout,
+                 sizeof(timeout)) < 0) {
     log("Could not set timeout!\n");
     return -1;
   }
@@ -226,7 +233,8 @@ int main(void) {
     stun_request_t request; // receive buffer
 
     // When a new client sends a datagram connection request...
-    if ((recv_size = recvfrom(s, &request, sizeof(request), 0, (struct sockaddr *) &si_client, &slen)) < 0) {
+    if ((recv_size = recvfrom(s, &request, sizeof(request), 0,
+                              (struct sockaddr*) &si_client, &slen)) < 0) {
       if (errno == EAGAIN) {
         recv_size = 0;
       } else {
@@ -247,8 +255,8 @@ int main(void) {
         recv_size = tcp_connection_data.recv_size;
         tcp_connection_pending = false;
       } else {
-	// Received neither TCP nor UDP
-	continue;
+        // Received neither TCP nor UDP
+        continue;
       }
     }
 
@@ -260,100 +268,111 @@ int main(void) {
     }
 
     // the client's public UDP endpoint data is now in si_client
-    //log("Received packet from %s:%d.\n", inet_ntoa(si_client.sin_addr), ntohs(si_client.sin_port));
+    // log("Received packet from %s:%d.\n", inet_ntoa(si_client.sin_addr),
+    // ntohs(si_client.sin_port));
 
     if (recv_size == sizeof(request)) {
       if (request.type == ASK_INFO) {
-        log("Received %s REQUEST packet from %s:%d.\n", type, inet_ntoa(si_client.sin_addr), ntohs(si_client.sin_port));
+        log("Received %s REQUEST packet from %s:%d.\n", type,
+            inet_ntoa(si_client.sin_addr), ntohs(si_client.sin_port));
 
-	struct in_addr requested_addr;
-	requested_addr.s_addr = request.entry.ip;
+        struct in_addr requested_addr;
+        requested_addr.s_addr = request.entry.ip;
 
-	char* original = inet_ntoa(si_client.sin_addr);
-	
-        log("%s:%d Wants to connect to public %s:%d.\n", original, ntohs(si_client.sin_port), inet_ntoa(requested_addr), ntohs(request.entry.public_port));
+        char *original = inet_ntoa(si_client.sin_addr);
+
+        log("%s:%d Wants to connect to public %s:%d.\n", original,
+            ntohs(si_client.sin_port), inet_ntoa(requested_addr),
+            ntohs(request.entry.public_port));
 
         int ip = request.entry.ip;
-	int port = request.entry.public_port;
-	int private_port = -1;
-	int server_socket = s;
+        int port = request.entry.public_port;
+        int private_port = -1;
+        int server_socket = s;
 
-	if (stun_entries.count(ip)) {
-	  for(stun_map_entry_t& map_entry : stun_entries[ip]) {
+        if (stun_entries.count(ip)) {
+          for (stun_map_entry_t &map_entry : stun_entries[ip]) {
             if (time() - map_entry.time > STUN_ENTRY_TIMEOUT / 1000.0) {
-	      continue;
-	    }
+              continue;
+            }
             stun_entry_t entry = map_entry.entry;
             if (port == entry.public_port) {
-	      if (map_entry.tcp_socket > 0) {
-	        server_socket = map_entry.tcp_socket;
-		map_entry.time = 0;
-	      }
+              if (map_entry.tcp_socket > 0) {
+                server_socket = map_entry.tcp_socket;
+                map_entry.time = 0;
+              }
               private_port = entry.private_port;
-	      log("Found port %d to public %d!\n\n", ntohs(private_port), ntohs(port));
-	      break;
-	    }
-	  }
+              log("Found port %d to public %d!\n\n", ntohs(private_port),
+                  ntohs(port));
+              break;
+            }
+          }
         }
 
-	if (private_port == -1) {
+        if (private_port == -1) {
           request.entry.private_port = -1;
-          log("Could not find private_port entry associated with %s:%d!\n\n", inet_ntoa(requested_addr), ntohs(port));
-	} else {
-          request.entry.private_port = private_port;	
+          log("Could not find private_port entry associated with %s:%d!\n\n",
+              inet_ntoa(requested_addr), ntohs(port));
+        } else {
+          request.entry.private_port = private_port;
 
-	  struct sockaddr_in si_server;
-	  si_server.sin_family = AF_INET; 
-	  si_server.sin_addr.s_addr = request.entry.ip; 
-	  si_server.sin_port = request.entry.private_port; 
+          struct sockaddr_in si_server;
+          si_server.sin_family = AF_INET;
+          si_server.sin_addr.s_addr = request.entry.ip;
+          si_server.sin_port = request.entry.private_port;
 
-	  stun_entry_t entry;
-	  entry.ip = si_client.sin_addr.s_addr;
-	  entry.private_port = si_client.sin_port;
+          stun_entry_t entry;
+          entry.ip = si_client.sin_addr.s_addr;
+          entry.private_port = si_client.sin_port;
 
-	  // Notify the server about the STUN connection
-          sendto(server_socket, &entry, sizeof(entry), MSG_NOSIGNAL, (struct sockaddr *) &si_server, sizeof(si_server));
-	}
+          // Notify the server about the STUN connection
+          sendto(server_socket, &entry, sizeof(entry), MSG_NOSIGNAL,
+                 (struct sockaddr*) &si_server, sizeof(si_server));
+        }
 
-	// Return answer to STUN request
-	log("Responding to STUN request\n");
-        sendto(connection_socket, &request.entry, sizeof(request.entry), MSG_NOSIGNAL, (struct sockaddr *) &si_client, sizeof(si_client));
+        // Return answer to STUN request
+        log("Responding to STUN request\n");
+        sendto(connection_socket, &request.entry, sizeof(request.entry),
+               MSG_NOSIGNAL, (struct sockaddr*) &si_client, sizeof(si_client));
       } else if (request.type == POST_INFO) {
-	int ip = si_client.sin_addr.s_addr;
-	request.entry.ip = ip;
-	request.entry.private_port = si_client.sin_port;
-	bool found = false;
-	for(stun_map_entry_t& map_entry : stun_entries[ip]) {
-	  if(map_entry.entry.public_port == request.entry.public_port) {
+        int ip = si_client.sin_addr.s_addr;
+        request.entry.ip = ip;
+        request.entry.private_port = si_client.sin_port;
+        bool found = false;
+        for (stun_map_entry_t &map_entry : stun_entries[ip]) {
+          if (map_entry.entry.public_port == request.entry.public_port) {
             if (time() - map_entry.time > STUN_ENTRY_TIMEOUT / 1000.0) {
-              log("Received %s POST_INFO packet from %s:%d.\n\n", type, inet_ntoa(si_client.sin_addr), ntohs(si_client.sin_port));
-	    }
-	    found = true;
-	    map_entry.time = time();
+              log("Received %s POST_INFO packet from %s:%d.\n\n", type,
+                  inet_ntoa(si_client.sin_addr), ntohs(si_client.sin_port));
+            }
+            found = true;
+            map_entry.time = time();
             map_entry.entry = request.entry;
-	    map_entry.tcp_socket = -1;
-	    if (tcp_connection_socket > 0) {
-	      map_entry.tcp_socket = tcp_connection_socket;
-	    }
-	  }
-	}
-	if (!found) {
-          log("Received %s POST_INFO packet from %s:%d.\n\n", type, inet_ntoa(si_client.sin_addr), ntohs(si_client.sin_port));
-	  if (stun_entries[ip].size() > 5) {
-	    stun_entries[ip].erase(stun_entries[ip].begin());
-	  }
-	  stun_map_entry_t map_entry;
-	  map_entry.time = time();
-	  map_entry.entry = request.entry;
-	  map_entry.tcp_socket = -1;
-	  if (tcp_connection_socket > 0) {
-	    map_entry.tcp_socket = tcp_connection_socket;
-	  }
-	  stun_entries[ip].push_back(map_entry);
-	}
+            map_entry.tcp_socket = -1;
+            if (tcp_connection_socket > 0) {
+              map_entry.tcp_socket = tcp_connection_socket;
+            }
+          }
+        }
+        if (!found) {
+          log("Received %s POST_INFO packet from %s:%d.\n\n", type,
+              inet_ntoa(si_client.sin_addr), ntohs(si_client.sin_port));
+          if (stun_entries[ip].size() > 5) {
+            stun_entries[ip].erase(stun_entries[ip].begin());
+          }
+          stun_map_entry_t map_entry;
+          map_entry.time = time();
+          map_entry.entry = request.entry;
+          map_entry.tcp_socket = -1;
+          if (tcp_connection_socket > 0) {
+            map_entry.tcp_socket = tcp_connection_socket;
+          }
+          stun_entries[ip].push_back(map_entry);
+        }
       }
     } else {
-      log("Incorrect size! %d instead of %d\n", recv_size, (int)sizeof(request));
+      log("Incorrect size! %d instead of %d\n", recv_size,
+          (int)sizeof(request));
     }
   } // end of connection listening for loop
 

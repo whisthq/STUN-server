@@ -1,37 +1,39 @@
 # Fractal STUN Server
 
-This repository contains the implementation of the Fractal hole punching server that initiates connection between a Fractal cloud computer and a client device.
+This repository contains the implementation of the Fractal STUN/hole-punching server that initiates connection between a Fractal cloud computer and a client device.
 
-Fractal hole punching server(s) are all hosted on AWS Lightsail with Ubuntu 18.04. When creating a new hole punching server, you can simply create an Ubuntu 18.04 OS-only instance from the AWS Lightsail platform. You then need to create a Static IP, which is free if attached to an instance, and attach it to the new instance created. You then need to go into the instance's networking and open "All UDP" and "All TCP" on the ports and remove everything else but SSH and "All UDP" and "All TCP".
+Fractal hole punching server(s) are all hosted on AWS Lightsail with Ubuntu 18.04. To create a new STUN-server instance:
 
-Each AWS Lightsail server, before making and running the server code, needs to be configured with:
+- Create an Ubuntu 18.04 OS-only instance from the AWS Lightsail platform. You can access the identifiers via the Fractal Google Drive, under Business Development, or via the Admin Dashboard.
+- Create a Static IP and attach it to your instance.
+- Go to your instance's networking and open "All UDP", "All TCP", and "SSH". You should remove everything else.
 
-`sudo apt-get update`
+You then need to install dependencies and this codebase. You can do so via:
 
-`sudo apt-get install git`
+```
+sudo apt-get update
+sudo apt-get install git make g++ immortal
+curl -s https://packagecloud.io/install/repositories/immortal/immortal/script.deb.sh | sudo bash
+```
 
-`sudo apt-get install make`
+You can also clone this repository and simply run `./setup.sh` and it will take care of installing all those dependencies.
 
-`sudo apt-get install g++`
+## Building & Running
 
-`curl -s https://packagecloud.io/install/repositories/immortal/immortal/script.deb.sh | sudo bash`
+You can build the code simply by typing `make`. 
 
-`sudo apt-get install immortal`
+The STUN server(s) are meant to be run 24/7. We use Immortal as a process manager to immediately restart after a crash. When starting a STUN-server for production usage, you should start it with:
 
-You can simply run `./setup.sh` and it will take care of installing all those dependencies.
+```
+immortal ./server
+```
 
-You can then clone this repository, cd into it and build with `make`.
-
-## Running and Autorestart
-
-A hole punching server, once started, should run forever, and so we can start it so that it to automatically restart after a crash. We are using Immortal for this, which gets imported with curl during the configuration. We can then start the hole punching server with the following command:
-
-`immortal ./server`
-
-It will run in the background and restart automatically if it exits. To see if it is running, we can run `immortalctl`, which prints the running jobs. A proccess can be shutdown with `immortalctl -k <name>`. 
+It will run in the background and restart automatically if it exits. To see if it is running, you can run `immortalctl`, which prints the running jobs. A proccess can be shutdown via `immortalctl -k <name>`. 
 
 ## Running Servers
 
-Currently there are 1 hole punching servers active:
+Currently there are 1 STUN servers active: https://lightsail.aws.amazon.com/ls/webapp/home/instances
 
-The servers are hosted at: https://lightsail.aws.amazon.com/ls/webapp/home/instances
+## Publishing & Updating
+
+Currently, we do not have an automated way to replace the STUN server in Lightsail other than manually take it down; this is left as a TODO. Once you have updated the production code, you should run `./update.sh` to notify the Fractal team via Slack.  
