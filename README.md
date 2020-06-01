@@ -36,4 +36,4 @@ Currently there are 1 STUN servers active: https://lightsail.aws.amazon.com/ls/w
 
 ## Publishing & Updating
 
-Currently, we do not have an automated way to replace the STUN server in Lightsail other than manually take it down; this is left as a TODO. Once you have updated the production code, you should run `./update.sh` to notify the Fractal team via Slack.  
+Currently, we do not have an automated way to replace the STUN server in Lightsail other than manually take it down and git pull/make the new version. Once you have updated the production code, you should run `./update.sh` to notify the Fractal team via Slack.  
