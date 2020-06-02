@@ -17,6 +17,8 @@ jobs:
       run: ./setup.sh
     - name: make
       run: make
+    - name: clang-format
+      run: clang-format -i *.cpp
     # TODO: make tests
     # - name: make check
     #   run: make check
