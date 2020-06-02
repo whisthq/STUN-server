@@ -17,7 +17,8 @@ jobs:
       run: ./setup.sh
     - name: make
       run: make
-    - name: make check
-      run: make check
-    - name: make distcheck
-      run: make distcheck
+    # TODO: make tests
+    # - name: make check
+    #   run: make check
+    # - name: make distcheck
+    #   run: make distcheck

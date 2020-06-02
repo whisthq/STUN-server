@@ -1,5 +1,7 @@
 # Fractal STUN Server
 
+![C/C++ CI](https://github.com/fractalcomputers/STUN-server/workflows/C/C++%20CI/badge.svg)
+
 This repository contains the implementation of the Fractal STUN/hole-punching server that initiates connection between a Fractal cloud computer and a client device.
 
 Fractal hole punching server(s) are all hosted on AWS Lightsail with Ubuntu 18.04. To create a new STUN-server instance:
@@ -29,6 +31,8 @@ immortal ./server
 ```
 
 It will run in the background and restart automatically if it exits. To see if it is running, you can run `immortalctl`, which prints the running jobs. A proccess can be shutdown via `immortalctl -k <name>`. 
+
+We have basic continuous integration in this project, using GitHub Actions. When a push or PR happens on master, the executable will get compiled on Ubuntu. You should make sure that your commit pass the tests under the Actions tab.
 
 ## Running Servers
 
