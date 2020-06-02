@@ -34,7 +34,7 @@ It will run in the background and restart automatically if it exits. To see if i
 
 We have basic continuous integration in this project, using GitHub Actions. When a push or PR happens on master, the executable will get compiled on Ubuntu. You should make sure that your commit pass the tests under the Actions tab.
 
-## Style
+## Styling
 
 We use clang-format for the coding style on this repository. You can easily run `clang-format -i <file>` to run it on a specific file, or `clang-format -i *.cpp` to run it on all C++ files, for example.
 
