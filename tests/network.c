@@ -191,7 +191,7 @@ int CreateUDPServerContextStun(SocketContext *context, int port,
     // Server connection protocol
     context->is_server = true;
 
-    // Tell the STUN to flog our requested virtual port
+    // Tell the STUN to log our requested virtual port
     struct sockaddr_in stun_addr;
     stun_addr.sin_family = AF_INET;
     stun_addr.sin_addr.s_addr = inet_addr(STUN_IP);
