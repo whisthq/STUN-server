@@ -20,6 +20,7 @@ jobs:
     - name: make tests
       working-directory: tests
       run: make
+    run: echo "\n ::add-matcher::${ github-workspace }/.github/unit_test_matcher.json\n"
     - name: run stun as background process and run tests
       run: (./stun&); sleep 1; ./tests/test_stun
     - name: clang-format
@@ -33,4 +34,4 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: stun_tests_log
-        path: tests/log.txt
+        path: flog.txt

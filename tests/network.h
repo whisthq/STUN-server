@@ -23,6 +23,9 @@
 
 #define STUN_IP "127.0.0.1"
 #define STUN_PORT 48800
+
+
+
 typedef struct {
     unsigned int ip;
     unsigned short private_port;
@@ -48,5 +51,13 @@ int CreateUDPClientContextStun(SocketContext *context, char *destination,
             int port, int recvfrom_timeout_ms, int stun_timeout_ms);
 int CreateUDPServerContextStun(SocketContext *context, int port,
     int recvfrom_timeout_ms, int stun_timeout_ms);
+
+int CreateTCPClientContextStun(SocketContext *context, char *destination,
+    int port, int recvfrom_timeout_ms,  int stun_timeout_ms);
+
+int CreateTCPServerContextStun(SocketContext *context, int port,
+                               int recvfrom_timeout_ms, int stun_timeout_ms);
+
+int Ack(SocketContext *context);
 
 #endif  // STUN_SERVER_TEST_NETWORK_H
