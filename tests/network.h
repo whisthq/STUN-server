@@ -6,13 +6,12 @@
  * Copyright Fractal Computers, Inc. 2020
  */
 
-#include <stdarg.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/in.h>
-#include <sys/socket.h>
+#include <stdarg.h>
 #include <stdbool.h>
-
+#include <sys/socket.h>
 
 #ifndef STUN_SERVER_TEST_NETWORK_H
 #define STUN_SERVER_TEST_NETWORK_H
@@ -28,8 +27,6 @@
 
 #define STUN_IP "127.0.0.1"
 #define STUN_PORT 48800
-
-
 
 typedef struct {
     unsigned int ip;
@@ -53,12 +50,14 @@ typedef struct SocketContext {
 } SocketContext;
 
 int CreateUDPClientContextStun(SocketContext *context, char *destination,
-            int port, int recvfrom_timeout_ms, int stun_timeout_ms);
+                               int port, int recvfrom_timeout_ms,
+                               int stun_timeout_ms);
 int CreateUDPServerContextStun(SocketContext *context, int port,
-    int recvfrom_timeout_ms, int stun_timeout_ms);
+                               int recvfrom_timeout_ms, int stun_timeout_ms);
 
 int CreateTCPClientContextStun(SocketContext *context, char *destination,
-    int port, int recvfrom_timeout_ms,  int stun_timeout_ms);
+                               int port, int recvfrom_timeout_ms,
+                               int stun_timeout_ms);
 
 int CreateTCPServerContextStun(SocketContext *context, int port,
                                int recvfrom_timeout_ms, int stun_timeout_ms);

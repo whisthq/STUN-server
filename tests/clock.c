@@ -8,7 +8,7 @@ LARGE_INTEGER frequency;
 bool set_frequency = false;
 #endif
 
-void FractalStartTimer(fractal_clock_t* timer) {
+void FractalStartTimer(fractal_clock_t *timer) {
 #if defined(_WIN32)
     if (!set_frequency) {
         QueryPerformanceFrequency(&frequency);
@@ -55,7 +55,7 @@ fractal_clock_t FractalCreateClock(int timeout_ms) {
     return out;
 }
 
-char* FractalCurrentTimeStr() {
+char *FractalCurrentTimeStr() {
     static char buffer[64];
     //    time_t rawtime;
     //
@@ -67,7 +67,7 @@ char* FractalCurrentTimeStr() {
     snprintf(buffer, sizeof(buffer), "%02i:%02i:%02i:%03i", time_now.wHour,
              time_now.wMinute, time_now.wSecond, time_now.wMilliseconds);
 #else
-    struct tm* time_str_tm;
+    struct tm *time_str_tm;
     struct timeval time_now;
     gettimeofday(&time_now, NULL);
 

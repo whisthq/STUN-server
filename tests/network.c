@@ -220,7 +220,6 @@ int CreateUDPServerContextStun(SocketContext *context, int port,
     return 0;
 }
 
-
 bool tcp_connect(SOCKET s, struct sockaddr_in addr, int timeout_ms) {
     // Connect to TCP server
     int ret;
@@ -335,13 +334,13 @@ int CreateTCPClientContextStun(SocketContext *context, char *destination,
     int recv_size = 0;
     stun_entry_t entry = {0};
 
-    while (recv_size < (int)sizeof(entry) && FractalGetTimer(t) < stun_timeout_ms) {
+    while (recv_size < (int)sizeof(entry) &&
+           FractalGetTimer(t) < stun_timeout_ms) {
         int single_recv_size;
         if ((single_recv_size = recvp(context, ((char *)&entry) + recv_size,
                                       max(0, (int)sizeof(entry) - recv_size))) <
             0) {
-            flog("Did not receive STUN response %d\n",
-                        GetLastNetworkError());
+            flog("Did not receive STUN response %d\n", GetLastNetworkError());
             closesocket(context->s);
             return -1;
         }
@@ -358,7 +357,7 @@ int CreateTCPClientContextStun(SocketContext *context, char *destination,
     struct in_addr a;
     a.s_addr = entry.ip;
     flog("TCP STUN responded that the TCP server is located at %s:%d\n",
-                inet_ntoa(a), ntohs(entry.private_port));
+         inet_ntoa(a), ntohs(entry.private_port));
 
     closesocket(context->s);
 
@@ -404,9 +403,6 @@ int CreateTCPClientContextStun(SocketContext *context, char *destination,
     set_timeout(context->s, recvfrom_timeout_ms);
     return 0;
 }
-
-
-
 
 int CreateTCPServerContextStun(SocketContext *context, int port,
                                int recvfrom_timeout_ms, int stun_timeout_ms) {
@@ -482,13 +478,13 @@ int CreateTCPServerContextStun(SocketContext *context, int port,
     int recv_size = 0;
     stun_entry_t entry = {0};
 
-    while (recv_size < (int)sizeof(entry) && FractalGetTimer(t) < stun_timeout_ms) {
+    while (recv_size < (int)sizeof(entry) &&
+           FractalGetTimer(t) < stun_timeout_ms) {
         int single_recv_size;
         if ((single_recv_size = recvp(context, ((char *)&entry) + recv_size,
                                       max(0, (int)sizeof(entry) - recv_size))) <
             0) {
-            flog("Did not receive STUN response %d\n",
-                        GetLastNetworkError());
+            flog("Did not receive STUN response %d\n", GetLastNetworkError());
             closesocket(context->s);
             return -1;
         }
@@ -507,7 +503,7 @@ int CreateTCPServerContextStun(SocketContext *context, int port,
     client_addr.sin_addr.s_addr = entry.ip;
     client_addr.sin_port = entry.private_port;
     flog("TCP STUN notified of desired request from %s:%d\n",
-             inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+         inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
 
     closesocket(context->s);
 
@@ -543,7 +539,7 @@ int CreateTCPServerContextStun(SocketContext *context, int port,
 
     context->addr = client_addr;
     flog("Client received at %s:%d!\n", inet_ntoa(context->addr.sin_addr),
-             ntohs(context->addr.sin_port));
+         ntohs(context->addr.sin_port));
     set_timeout(context->s, recvfrom_timeout_ms);
     return 0;
 }
