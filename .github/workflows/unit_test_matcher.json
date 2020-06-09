@@ -4,7 +4,7 @@
       "owner": "unittest",
       "pattern": [
         {
-          "regexp": "^UnitTest:(.*):(.*):(.*):(FAIL: .*)$",
+          "regexp": "^UnitTest:(.*):(.*):(.*):(FAIL:.*)$",
           "file": 1,
           "line": 2,
           "severity": 4,

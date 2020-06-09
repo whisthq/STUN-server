@@ -27,11 +27,13 @@ jobs:
     - name: clang-format
       run: clang-format -i *.cpp
     - name: Archive stun log
+      if: always()
       uses: actions/upload-artifact@v1
       with:
         name: stun_log
         path: log.txt
     - name: Archive test log
+      if: always()
       uses: actions/upload-artifact@v1
       with:
         name: stun_tests_log
