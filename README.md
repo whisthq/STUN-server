@@ -32,7 +32,7 @@ immortal ./server
 
 It will run in the background and restart automatically if it exits. To see if it is running, you can run `immortalctl`, which prints the running jobs. A proccess can be shutdown via `immortalctl -k <name>`. 
 
-We have basic continuous integration in this project, using GitHub Actions. When a push or PR happens on master, the executable will get compiled on Ubuntu and clang-format will be run. You should make sure that your commit pass the tests under the Actions tab.
+We have continuous integration in this project, using GitHub Actions. When a push or PR happens on master, the executable will get compiled on Ubuntu and clang-format will be run. It will also run unit and integration tests using Unity, including testing UDP and TCP connectivity. You can see those in the `/tests` folder. You should make sure that your commit pass the tests under the Actions tab.
 
 ## Styling
 

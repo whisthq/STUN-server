@@ -7,6 +7,8 @@
 ============================
 Usage
 ============================
+
+Use these functions to time code, via FractalStartTimer and FractalGetTimer.
 */
 
 /*
@@ -14,6 +16,9 @@ Usage
 Includes
 ============================
 */
+
+#include <stdbool.h>
+#include <stdio.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -73,4 +78,4 @@ fractal_clock_t FractalCreateClock(int timeout_ms);
  */
 char* FractalCurrentTimeStr();
 
-#endif
+#endif  // CLOCK_H

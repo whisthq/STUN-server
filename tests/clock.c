@@ -1,14 +1,11 @@
 #include "clock.h"
 
-#include <stdbool.h>
-#include <stdio.h>
-
 #if defined(_WIN32)
 LARGE_INTEGER frequency;
 bool set_frequency = false;
 #endif
 
-void FractalStartTimer(fractal_clock_t *timer) {
+void FractalStartTimer(fractal_clock_t* timer) {
 #if defined(_WIN32)
     if (!set_frequency) {
         QueryPerformanceFrequency(&frequency);
@@ -19,6 +16,7 @@ void FractalStartTimer(fractal_clock_t *timer) {
     // start timer
     gettimeofday(timer, NULL);
 #endif
+    return;
 }
 
 double FractalGetTimer(fractal_clock_t timer) {
@@ -55,19 +53,16 @@ fractal_clock_t FractalCreateClock(int timeout_ms) {
     return out;
 }
 
-char *FractalCurrentTimeStr() {
+char* FractalCurrentTimeStr() {
     static char buffer[64];
-    //    time_t rawtime;
-    //
-    //    time(&rawtime);
-    //    timeinfo = localtime(&rawtime);
+
 #if defined(_WIN32)
     SYSTEMTIME time_now;
     GetSystemTime(&time_now);
     snprintf(buffer, sizeof(buffer), "%02i:%02i:%02i:%03i", time_now.wHour,
              time_now.wMinute, time_now.wSecond, time_now.wMilliseconds);
 #else
-    struct tm *time_str_tm;
+    struct tm* time_str_tm;
     struct timeval time_now;
     gettimeofday(&time_now, NULL);
 
@@ -76,8 +71,5 @@ char *FractalCurrentTimeStr() {
              time_str_tm->tm_hour, time_str_tm->tm_min, time_str_tm->tm_sec,
              (long)time_now.tv_usec);
 #endif
-
-    //    strftime(buffer, 64, "%Y-%m-%d %H:%M:%S", timeinfo);
-
     return buffer;
 }
