@@ -1,6 +1,11 @@
-//
-// Created by hamish on 9/6/20.
-//
+/***
+ * @file network.h
+ * @author Hamish Nicholson
+ * @brief a stripped down version of the protocol network.h to allow for stun
+ * testing.
+ * Copyright Fractal Computers, Inc. 2020
+ */
+
 #include <stdarg.h>
 #include <arpa/inet.h>
 #include <netdb.h>

@@ -1,6 +1,10 @@
-//
-// Created by hamish on 9/6/20.
-//
+/***
+ * @file network.c
+ * @author Hamish Nicholson
+ * @brief a stripped down version of the protocol network.c to allow for stun
+ * testing.
+ * Copyright Fractal Computers, Inc. 2020
+ */
 #include <arpa/inet.h>
 #include <errno.h>
 #include <netdb.h>

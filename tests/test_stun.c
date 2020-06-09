@@ -1,6 +1,11 @@
-//
-// Created by hamish on 9/6/20.
-//
+/**
+ * @file test_stun.c
+ * @author Hamish Nicholson
+ * @brief A set of tests to be run on github actions or locally. These tests
+ * assume a stun server running on the same machine accessible at 127.0.0.1
+ *
+ * Copyright Fractal Computers, Inc. 2020
+ */
 
 #include "network.h"
 #include "unity.h"
@@ -17,6 +22,9 @@ void setUp(void) { int b = 2; }
 
 void tearDown(void) { int a = 1; }
 
+/**
+ * @brief creates a UDP context on the stun. Modifies the state of the stun
+ */
 void test_UDP_server_context(void) {
     char destination[] = "127.0.0.1";
     SocketContext context;
@@ -24,6 +32,10 @@ void test_UDP_server_context(void) {
     TEST_ASSERT_EQUAL_INT(0, result);
 }
 
+/**
+ * @brief create a client UDP context, this tests that the context exists on the
+ * stun. This function must run after test_UDP_server_context to pass
+ */
 void test_UDP_client_context(void) {
     char destination[] = "127.0.0.1";
     SocketContext context;
@@ -32,6 +44,10 @@ void test_UDP_client_context(void) {
     TEST_ASSERT_EQUAL_INT(0, result);
 }
 
+/**
+ * @brief test that the server TCP context fails when there is no client on the
+ * other side.
+ */
 void test_TCP_server_context_no_client(void){
     SocketContext context;
     int result = CreateTCPServerContextStun(&context, TCP_PORT, 500, 500);
@@ -39,6 +55,11 @@ void test_TCP_server_context_no_client(void){
     TEST_ASSERT_EQUAL_INT(-1, result);
 }
 
+/**
+ * @brief Spin up a thread to poll the stun looking for incoming TCP connections
+ * @param args NULL
+ * @return NULL
+ */
 void * server_TCP_loop(void *args){
     SocketContext context;
     while(1){
@@ -52,6 +73,10 @@ void * server_TCP_loop(void *args){
     }
 }
 
+/**
+ * @brief Spin up a thread looking for incoming TCP connections on the STUN then
+ * attempt to create a TCP context with that thread.
+ */
 void test_TCP_client_context(void){
     pthread_t thread_id;
     pthread_create(&thread_id, NULL, server_TCP_loop, NULL);
@@ -60,14 +85,13 @@ void test_TCP_client_context(void){
     sleep(1);
     CreateTCPClientContextStun(&context, destination, TCP_PORT, 500,  500);
     pthread_join(thread_id, NULL);
-
 }
 
 
 
 int main(void) {
     UNITY_BEGIN();
-    RUN_TEST(test_UDP_server_context);
+//    RUN_TEST(test_UDP_server_context);
     sleep(1);
     RUN_TEST(test_UDP_client_context);
     RUN_TEST(test_TCP_server_context_no_client);
