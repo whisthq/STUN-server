@@ -2,13 +2,12 @@ name: C/C++ CI
 
 on:
   push:
-#    branches: [ master ]
+    branches: [ master ]
   pull_request:
-#    branches: [ master ]
+    branches: [ master ]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:

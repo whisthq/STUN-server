@@ -15,7 +15,6 @@
 
 #define PORT_SERVER_TO_CLIENT 32263
 #define PORT_CLIENT_TO_SERVER 32262
-
 #define TCP_PORT 32264
 
 void setUp(void) { int b = 2; }
@@ -57,9 +56,9 @@ void test_TCP_server_context_no_client(void) {
 }
 
 /**
- * @brief Spin up a thread to poll the stun looking for incoming TCP connections
- * @param args NULL
- * @return NULL
+ * @brief           Spin up a thread to poll the stun looking for incoming TCP connections
+ * @param args      NULL
+ * @return          NULL
  */
 void *server_TCP_loop(void *args) {
     SocketContext context;
@@ -76,7 +75,7 @@ void *server_TCP_loop(void *args) {
 
 /**
  * @brief Spin up a thread looking for incoming TCP connections on the STUN then
- * attempt to create a TCP context with that thread.
+ *        attempt to create a TCP context with that thread.
  */
 void test_TCP_client_context(void) {
     pthread_t thread_id;
