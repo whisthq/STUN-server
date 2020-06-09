@@ -33,4 +33,4 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: stun_tests_log
-        path: tests/flog.txt
+        path: tests/log.txt

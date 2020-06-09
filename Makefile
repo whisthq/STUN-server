@@ -26,7 +26,7 @@ WARNINGS = \
 FLAGS := -g -fPIC -MMD -MP
 
 # libraries
-DYNAMIC_LIBS = -lpthread
+DYNAMIC_LIBS = -lpthread -lc
 
 # make all objects
 all: clean $(OBJS)

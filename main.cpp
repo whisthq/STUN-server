@@ -20,6 +20,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <cerrno>
 
 #define HOLEPUNCH_PORT 48800  // Fractal default holepunch port
 #define STUN_ENTRY_TIMEOUT 30000
@@ -139,6 +140,7 @@ void *handle_tcp_response(void *vargp) {
 
         break;
     }
+    return NULL;
 }
 
 void *grab_tcp_connection(void *vargp) {
