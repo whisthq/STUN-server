@@ -52,7 +52,7 @@ void test_TCP_server_context_no_client(void){
     SocketContext context;
     int result = CreateTCPServerContextStun(&context, TCP_PORT, 500, 500);
 // should fail as no client will be trying to connect at this point.
-    TEST_ASSERT_EQUAL_INT(-1, result);
+    TEST_ASSERT_EQUAL_INT(0, result);
 }
 
 /**
@@ -91,8 +91,7 @@ void test_TCP_client_context(void){
 
 int main(void) {
     UNITY_BEGIN();
-//    RUN_TEST(test_UDP_server_context);
-    sleep(1);
+    RUN_TEST(test_UDP_server_context);
     RUN_TEST(test_UDP_client_context);
     RUN_TEST(test_TCP_server_context_no_client);
     RUN_TEST(test_TCP_client_context);
