@@ -24,8 +24,13 @@ jobs:
       run: (./stun&); sleep 1; ./tests/test_stun
     - name: clang-format
       run: clang-format -i *.cpp
-    # TODO: make tests
-    # - name: make check
-    #   run: make check
-    # - name: make distcheck
-    #   run: make distcheck
+    - name: Archive stun log
+      uses: actions/upload-artifact@v1
+      with:
+        name: stun_log
+        path: log.txt
+    - name: Archive test log
+      uses: actions/upload-artifact@v1
+      with:
+        name: stun_tests_log
+        path: tests/flog.txt
