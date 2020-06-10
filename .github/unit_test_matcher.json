@@ -1,0 +1,16 @@
+{
+  "problemMatcher": [
+    {
+      "owner": "unittest",
+      "pattern": [
+        {
+          "regexp": "^UnitTest:(.*):(.*):(.*):(FAIL:.*)$",
+          "file": 1,
+          "line": 2,
+          "severity": 4,
+          "message": 3
+        }
+      ]
+    }
+  ]
+}

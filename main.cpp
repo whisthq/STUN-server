@@ -5,8 +5,6 @@
  *        UDP and TCP hole punching, acting as a Fractal hole punching server.
  *        This hole punching server is built for AWS Lightsail running
  *        Ubuntu 18.04.
- *
- * Copyright Fractal Computers, Inc. 2020
  */
 
 #include <arpa/inet.h>
@@ -20,11 +18,12 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <cerrno>
 
 #define HOLEPUNCH_PORT 48800  // Fractal default holepunch port
 #define STUN_ENTRY_TIMEOUT 30000
 
-FILE *log_file = NULL;
+FILE* log_file = NULL;
 
 void log(const char *fmt, ...) {
     if (!log_file) {
@@ -32,10 +31,10 @@ void log(const char *fmt, ...) {
     }
 
     time_t rawtime;
-    struct tm *timeinfo;
+    struct tm* timeinfo;
     time(&rawtime);
     timeinfo = localtime(&rawtime);
-    char *time_string = asctime(timeinfo);
+    char* time_string = asctime(timeinfo);
     time_string[strlen(time_string) - 1] = '\0';
 
     printf("%s | ", time_string);
@@ -106,9 +105,9 @@ typedef struct {
 pthread_mutex_t tcp_connection_data_mutex = PTHREAD_MUTEX_INITIALIZER;
 tcp_connection_data_t tcp_connection_data;
 
-void *handle_tcp_response(void *vargp) {
-    tcp_connection_data_t *handle_tcp_response_data =
-        (tcp_connection_data_t *)vargp;
+void* handle_tcp_response(void* vargp) {
+    tcp_connection_data_t* handle_tcp_response_data =
+        (tcp_connection_data_t*)vargp;
     struct sockaddr_in si_client = handle_tcp_response_data->si_client;
     int new_tcp_socket = handle_tcp_response_data->new_tcp_socket;
     delete handle_tcp_response_data;
@@ -136,12 +135,12 @@ void *handle_tcp_response(void *vargp) {
         tcp_connection_data.recv_size = recv_size;
         tcp_connection_pending = true;
         pthread_mutex_unlock(&tcp_connection_data_mutex);
-
         break;
     }
+    return NULL;
 }
 
-void *grab_tcp_connection(void *vargp) {
+void* grab_tcp_connection(void* vargp) {
     while (true) {
         if (listen(tcp_socket, 3) < 0) {
             log("Failed to TCP listen(2)\n");
@@ -152,7 +151,7 @@ void *grab_tcp_connection(void *vargp) {
         socklen_t slen = sizeof(si_client);
 
         int new_tcp_socket;
-        if ((new_tcp_socket = accept(tcp_socket, (struct sockaddr *)&si_client,
+        if ((new_tcp_socket = accept(tcp_socket, (struct sockaddr*)&si_client,
                                      &slen)) < 0) {
             log("Failed to TCP accept(3)\n");
             continue;
@@ -192,13 +191,13 @@ int main(void) {
     }
 
     // set our endpoint (for this UDP hole punching server not behind a NAT)
-    memset((char *)&si_me, 0, sizeof(si_me));
+    memset((char*)&si_me, 0, sizeof(si_me));
     si_me.sin_family = AF_INET;
     si_me.sin_port = htons(HOLEPUNCH_PORT);
     si_me.sin_addr.s_addr = htonl(INADDR_ANY);
 
     // bind socket to this endpoint
-    if (bind(s, (struct sockaddr *)&si_me, sizeof(si_me)) < 0) {
+    if (bind(s, (struct sockaddr*)&si_me, sizeof(si_me)) < 0) {
         log("Failed to bind socket. `sudo reboot` and try again.\n");
         return -2;
     }
@@ -210,7 +209,7 @@ int main(void) {
         return -2;
     }
 
-    if (bind(tcp_socket, (struct sockaddr *)&si_me, sizeof(si_me)) < 0) {
+    if (bind(tcp_socket, (struct sockaddr*)&si_me, sizeof(si_me)) < 0) {
         log("Failed to bind socket. `sudo reboot` and try again.\n");
         return -2;
     }
@@ -235,7 +234,7 @@ int main(void) {
 
         // When a new client sends a datagram connection request...
         if ((recv_size = recvfrom(s, &request, sizeof(request), 0,
-                                  (struct sockaddr *)&si_client, &slen)) < 0) {
+                                  (struct sockaddr*)&si_client, &slen)) < 0) {
             if (errno == EAGAIN) {
                 recv_size = 0;
             } else {
@@ -261,7 +260,7 @@ int main(void) {
             }
         }
 
-        const char *type = "UDP";
+        const char* type = "UDP";
         int connection_socket = s;
         if (tcp_connection_socket > 0) {
             type = "TCP";
@@ -330,13 +329,13 @@ int main(void) {
 
                     // Notify the server about the STUN connection
                     sendto(server_socket, &entry, sizeof(entry), MSG_NOSIGNAL,
-                           (struct sockaddr *)&si_server, sizeof(si_server));
+                           (struct sockaddr*)&si_server, sizeof(si_server));
                 }
 
                 // Return answer to STUN request
                 log("Responding to STUN request\n");
                 sendto(connection_socket, &request.entry, sizeof(request.entry),
-                       MSG_NOSIGNAL, (struct sockaddr *)&si_client,
+                       MSG_NOSIGNAL, (struct sockaddr*)&si_client,
                        sizeof(si_client));
             } else if (request.type == POST_INFO) {
                 int ip = si_client.sin_addr.s_addr;
