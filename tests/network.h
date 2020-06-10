@@ -1,9 +1,10 @@
-/***
- * @file network.h
- * @author Hamish Nicholson
- * @brief a stripped down version of the protocol network.h to allow for stun
- * testing.
+#ifndef STUN_SERVER_TEST_NETWORK_H
+#define STUN_SERVER_TEST_NETWORK_H
+/**
  * Copyright Fractal Computers, Inc. 2020
+ * @file network.h
+ * @brief A stripped down version of the protocol network.h to allow for stun
+ *        testing.
  */
 
 #include <arpa/inet.h>
@@ -12,9 +13,6 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <sys/socket.h>
-
-#ifndef STUN_SERVER_TEST_NETWORK_H
-#define STUN_SERVER_TEST_NETWORK_H
 
 #define SOCKET int
 #define closesocket close
@@ -49,17 +47,17 @@ typedef struct SocketContext {
     int ack;
 } SocketContext;
 
-int CreateUDPClientContextStun(SocketContext *context, char *destination,
+int CreateUDPClientContextStun(SocketContext* context, char* destination,
                                int port, int recvfrom_timeout_ms,
                                int stun_timeout_ms);
-int CreateUDPServerContextStun(SocketContext *context, int port,
+int CreateUDPServerContextStun(SocketContext* context, int port,
                                int recvfrom_timeout_ms, int stun_timeout_ms);
 
-int CreateTCPClientContextStun(SocketContext *context, char *destination,
+int CreateTCPClientContextStun(SocketContext* context, char* destination,
                                int port, int recvfrom_timeout_ms,
                                int stun_timeout_ms);
 
-int CreateTCPServerContextStun(SocketContext *context, int port,
+int CreateTCPServerContextStun(SocketContext* context, int port,
                                int recvfrom_timeout_ms, int stun_timeout_ms);
 
 int Ack(SocketContext *context);

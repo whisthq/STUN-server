@@ -1,10 +1,10 @@
-/***
- * @file network.c
- * @author Hamish Nicholson
- * @brief a stripped down version of the protocol network.c to allow for stun
- * testing.
+/**
  * Copyright Fractal Computers, Inc. 2020
+ * @file network.c
+ * @brief A stripped down version of the protocol network.c to allow for stun
+ *        testing.
  */
+
 #include <arpa/inet.h>
 #include <errno.h>
 #include <netdb.h>
@@ -20,16 +20,16 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
-//#include <cstdarg>
 
 #include "clock.h"
 #include "network.h"
+
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 
 FILE *log_file = NULL;
 
-void flog(const char *fmt, ...) {
+void flog(const char* fmt, ...) {
     if (!log_file) {
         log_file = fopen("flog.txt", "a");
     }
@@ -82,7 +82,7 @@ void set_timeout(SOCKET s, int timeout_ms) {
 
         fractal_clock_t read_timeout = FractalCreateClock(timeout_ms);
 
-        if (setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (const char *)&read_timeout,
+        if (setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (const char*)&read_timeout,
                        sizeof(read_timeout)) < 0) {
             flog("Failed to set timeout");
             return;
@@ -90,7 +90,7 @@ void set_timeout(SOCKET s, int timeout_ms) {
     }
 }
 
-int recvp(SocketContext *context, void *buf, int len) {
+int recvp(SocketContext* context, void* buf, int len) {
     if (context == NULL) {
         flog("Context is NULL");
         return -1;
@@ -98,7 +98,7 @@ int recvp(SocketContext *context, void *buf, int len) {
     return recv(context->s, buf, len, 0);
 }
 
-int sendp(SocketContext *context, void *buf, int len) {
+int sendp(SocketContext* context, void* buf, int len) {
     if (context == NULL) {
         flog("Context is NULL");
         return -1;
@@ -108,13 +108,13 @@ int sendp(SocketContext *context, void *buf, int len) {
         return -1;
     }
     // cppcheck-suppress nullPointer
-    return sendto(context->s, buf, len, 0, (struct sockaddr *)(&context->addr),
+    return sendto(context->s, buf, len, 0, (struct sockaddr*)(&context->addr),
                   sizeof(context->addr));
 }
 
-int Ack(SocketContext *context) { return sendp(context, NULL, 0); }
+int Ack(SocketContext* context) { return sendp(context, NULL, 0); }
 
-int CreateUDPClientContextStun(SocketContext *context, char *destination,
+int CreateUDPClientContextStun(SocketContext* context, char* destination,
                                int port, int recvfrom_timeout_ms,
                                int stun_timeout_ms) {
     context->is_tcp = false;
@@ -142,8 +142,8 @@ int CreateUDPClientContextStun(SocketContext *context, char *destination,
     stun_request.entry.public_port = htons((unsigned short)port);
 
     flog("Sending info request to STUN...");
-    if (sendto(context->s, (const char *)&stun_request, sizeof(stun_request), 0,
-               (struct sockaddr *)&stun_addr, sizeof(stun_addr)) < 0) {
+    if (sendto(context->s, (const char*)&stun_request, sizeof(stun_request), 0,
+               (struct sockaddr*)&stun_addr, sizeof(stun_addr)) < 0) {
         flog("Could not send message to STUN %d\n", GetLastNetworkError());
         closesocket(context->s);
         return -1;
@@ -183,7 +183,7 @@ int CreateUDPClientContextStun(SocketContext *context, char *destination,
     return 0;
 }
 
-int CreateUDPServerContextStun(SocketContext *context, int port,
+int CreateUDPServerContextStun(SocketContext* context, int port,
                                int recvfrom_timeout_ms, int stun_timeout_ms) {
     flog("CreateUDPServerContextStun \n");
     context->is_tcp = false;
@@ -211,12 +211,11 @@ int CreateUDPServerContextStun(SocketContext *context, int port,
 
     flog("Sending stun entry to STUN...");
     if (sendto(context->s, (const char *)&stun_request, sizeof(stun_request), 0,
-               (struct sockaddr *)&stun_addr, sizeof(stun_addr)) < 0) {
+               (struct sockaddr*)&stun_addr, sizeof(stun_addr)) < 0) {
         flog("Could not send message to STUN %d\n", GetLastNetworkError());
         closesocket(context->s);
         return -1;
     }
-
     return 0;
 }
 
@@ -224,7 +223,7 @@ bool tcp_connect(SOCKET s, struct sockaddr_in addr, int timeout_ms) {
     // Connect to TCP server
     int ret;
     set_timeout(s, 0);
-    if ((ret = connect(s, (struct sockaddr *)(&addr), sizeof(addr))) < 0) {
+    if ((ret = connect(s, (struct sockaddr*)(&addr), sizeof(addr))) < 0) {
         bool worked = GetLastNetworkError() == FRACTAL_EINPROGRESS;
 
         if (!worked) {
@@ -257,7 +256,7 @@ bool tcp_connect(SOCKET s, struct sockaddr_in addr, int timeout_ms) {
     return true;
 }
 
-int CreateTCPClientContextStun(SocketContext *context, char *destination,
+int CreateTCPClientContextStun(SocketContext* context, char* destination,
                                int port, int recvfrom_timeout_ms,
                                int stun_timeout_ms) {
     if (context == NULL) {
@@ -288,14 +287,14 @@ int CreateTCPClientContextStun(SocketContext *context, char *destination,
     // Tell the STUN to use TCP
     SOCKET udp_s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     // cppcheck-suppress nullPointer
-    sendto(udp_s, NULL, 0, 0, (struct sockaddr *)&stun_addr, sizeof(stun_addr));
+    sendto(udp_s, NULL, 0, 0, (struct sockaddr*)&stun_addr, sizeof(stun_addr));
     closesocket(udp_s);
     // Client connection protocol
     context->is_server = false;
 
     // Reuse addr
     opt = 1;
-    if (setsockopt(context->s, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt,
+    if (setsockopt(context->s, SOL_SOCKET, SO_REUSEADDR, (const char*)&opt,
                    sizeof(opt)) < 0) {
         flog("Could not setsockopt SO_REUSEADDR");
         return -1;
@@ -309,7 +308,7 @@ int CreateTCPClientContextStun(SocketContext *context, char *destination,
 
     struct sockaddr_in origin_addr;
     socklen_t slen = sizeof(origin_addr);
-    if (getsockname(context->s, (struct sockaddr *)&origin_addr, &slen) < 0) {
+    if (getsockname(context->s, (struct sockaddr*)&origin_addr, &slen) < 0) {
         flog("Could not get sock name");
         closesocket(context->s);
         return -1;
@@ -337,7 +336,7 @@ int CreateTCPClientContextStun(SocketContext *context, char *destination,
     while (recv_size < (int)sizeof(entry) &&
            FractalGetTimer(t) < stun_timeout_ms) {
         int single_recv_size;
-        if ((single_recv_size = recvp(context, ((char *)&entry) + recv_size,
+        if ((single_recv_size = recvp(context, ((char*)&entry) + recv_size,
                                       max(0, (int)sizeof(entry) - recv_size))) <
             0) {
             flog("Did not receive STUN response %d\n", GetLastNetworkError());
@@ -376,7 +375,7 @@ int CreateTCPClientContextStun(SocketContext *context, char *destination,
     }
 
     // Bind to port
-    if (bind(context->s, (struct sockaddr *)(&origin_addr),
+    if (bind(context->s, (struct sockaddr*)(&origin_addr),
              sizeof(origin_addr)) < 0) {
         flog("Failed to bind to port! %d\n", GetLastNetworkError());
         closesocket(context->s);
@@ -397,14 +396,12 @@ int CreateTCPClientContextStun(SocketContext *context, char *destination,
         flog("Could not connect to server over TCP\n");
         return -1;
     }
-
     flog("Connected on %s:%d!\n", destination, port);
-
     set_timeout(context->s, recvfrom_timeout_ms);
     return 0;
 }
 
-int CreateTCPServerContextStun(SocketContext *context, int port,
+int CreateTCPServerContextStun(SocketContext* context, int port,
                                int recvfrom_timeout_ms, int stun_timeout_ms) {
     if (context == NULL) {
         flog("Context is NULL\n");
@@ -430,7 +427,7 @@ int CreateTCPServerContextStun(SocketContext *context, int port,
 
     SOCKET udp_s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     // cppcheck-suppress nullPointer
-    sendto(udp_s, NULL, 0, 0, (struct sockaddr *)&stun_addr, sizeof(stun_addr));
+    sendto(udp_s, NULL, 0, 0, (struct sockaddr*)&stun_addr, sizeof(stun_addr));
     closesocket(udp_s);
 
     // Server connection protocol
@@ -438,7 +435,7 @@ int CreateTCPServerContextStun(SocketContext *context, int port,
 
     // Reuse addr
     opt = 1;
-    if (setsockopt(context->s, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt,
+    if (setsockopt(context->s, SOL_SOCKET, SO_REUSEADDR, (const char*)&opt,
                    sizeof(opt)) < 0) {
         flog("Could not setsockopt SO_REUSEADDR\n");
         return -1;
@@ -453,7 +450,7 @@ int CreateTCPServerContextStun(SocketContext *context, int port,
     }
 
     socklen_t slen = sizeof(origin_addr);
-    if (getsockname(context->s, (struct sockaddr *)&origin_addr, &slen) < 0) {
+    if (getsockname(context->s, (struct sockaddr*)&origin_addr, &slen) < 0) {
         flog("Could not get sock name\n");
         closesocket(context->s);
         return -1;
@@ -481,7 +478,7 @@ int CreateTCPServerContextStun(SocketContext *context, int port,
     while (recv_size < (int)sizeof(entry) &&
            FractalGetTimer(t) < stun_timeout_ms) {
         int single_recv_size;
-        if ((single_recv_size = recvp(context, ((char *)&entry) + recv_size,
+        if ((single_recv_size = recvp(context, ((char*)&entry) + recv_size,
                                       max(0, (int)sizeof(entry) - recv_size))) <
             0) {
             flog("Did not receive STUN response %d\n", GetLastNetworkError());
@@ -515,14 +512,14 @@ int CreateTCPServerContextStun(SocketContext *context, int port,
     }
 
     opt = 1;
-    if (setsockopt(context->s, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt,
+    if (setsockopt(context->s, SOL_SOCKET, SO_REUSEADDR, (const char*)&opt,
                    sizeof(opt)) < 0) {
         flog("Could not setsockopt SO_REUSEADDR");
         return -1;
     }
 
     // Bind to port
-    if (bind(context->s, (struct sockaddr *)(&origin_addr),
+    if (bind(context->s, (struct sockaddr*)(&origin_addr),
              sizeof(origin_addr)) < 0) {
         flog("Failed to bind to port! %d\n", GetLastNetworkError());
         closesocket(context->s);
