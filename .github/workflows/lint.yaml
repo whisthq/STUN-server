@@ -1,0 +1,23 @@
+name: clang-format
+
+on:
+  push:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: clang-format
+        run: clang-format -i *.cpp
+      - name: Commit files
+        run: |
+         git config --local user.email "linter@fractalcomputers.com"
+         git config --local user.name "fractal linter"
+         git diff-index --quiet HEAD || git commit -m "Linted with clang-format" -a
+     - name: Push changes
+       uses: ad-m/github-push-action@master
+       with:
+         github_token: ${{ secrets.GITHUB_TOKEN }}
+         branch: ${{ github.ref }}
