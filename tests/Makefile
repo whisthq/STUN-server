@@ -1,11 +1,11 @@
 # specify compiler
-CC = g++
+CC = gcc
 
 # specify bin name
-BIN_NAME = stun
+BIN_NAME = test_stun
 
 # objects to build
-OBJS = main.o
+OBJS = network.o unity.o test_stun.o clock.o
 
 # warnings
 WARNINGS = \
@@ -26,19 +26,19 @@ WARNINGS = \
 FLAGS := -g -fPIC -MMD -MP
 
 # libraries
-DYNAMIC_LIBS = -lpthread -lc
+DYNAMIC_LIBS = -lpthread
 
 # make all objects
 all: clean $(OBJS)
 	$(CC) -o $(BIN_NAME) $(OBJS) $(DYNAMIC_LIBS)
 
 # apply C flags to all C files
-%.o: %.cpp Makefile
+%.o: %.c Makefile
 	$(CC) $(FLAGS) -c $< -o $@
 
 # clean directory
 clean:
-	-rm -f main.o stun *.d
+	-rm -f main.o tests *.d
 
 # clear
 .PHONY: all clean
