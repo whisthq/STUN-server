@@ -31,9 +31,6 @@ jobs:
     - name: run STUN as background process and run tests
       run: (./stun&); sleep 1; ./tests/test_stun
       
-    - name: Format with clang-format
-      run: clang-format -i *.cpp *.c *.h
-      
     - name: Archive STUN logs
       if: always()
       uses: actions/upload-artifact@v1
