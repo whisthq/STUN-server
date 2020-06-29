@@ -1,12 +1,12 @@
-# C/C++ Workflow testing STUN via integration and unit tests, and running clang-format.
+# C/C++ Workflow testing a STUN server via integration and unit tests.
 
 name: C/C++ CI
 
 on:
   push:
-    branches: [ master, dev ]
+    branches: [ master ]
   pull_request:
-    branches: [ master, dev ]
+    branches: [ master ]
 
 jobs:
   build:
@@ -14,26 +14,34 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      
     - name: Configure
       run: ./setup.sh
+      
     - name: make STUN
       run: make
+      
     - name: make tests
       working-directory: tests
       run: make
+      
     - name: add matcher
       run: echo "::add-matcher::${{ github.workspace }}/.github/unit_test_matcher.json"
+      
     - name: run STUN as background process and run tests
       run: (./stun&); sleep 1; ./tests/test_stun
-    - name: Format via clang-format
-      run: clang-format -i *.cpp
-    - name: Archive STUN log
+      
+    - name: Format with clang-format
+      run: clang-format -i *.cpp *.c *.h
+      
+    - name: Archive STUN logs
       if: always()
       uses: actions/upload-artifact@v1
       with:
         name: stun_log
         path: log.txt
-    - name: Archive test log
+
+    - name: Archive test logs
       if: always()
       uses: actions/upload-artifact@v1
       with:
