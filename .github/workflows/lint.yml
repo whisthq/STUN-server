@@ -1,4 +1,4 @@
-# Lint C/C++ code via Clang-format
+# Lint C/C++ code via clang-format
 
 name: clang-format
 
