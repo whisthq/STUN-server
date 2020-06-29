@@ -1,6 +1,6 @@
 # Fractal STUN Server
 
-![C/C++ CI](https://github.com/fractalcomputers/STUN-server/workflows/C/C++%20CI/badge.svg)
+![STUN CI](https://github.com/fractalcomputers/STUN-server/workflows/STUN%20CI/badge.svg)
 
 This repository contains the implementation of the Fractal STUN/hole-punching server that initiates a connection between a streaming server, typically a Fractal cloud computer or a customer's personal computer using Fractal to stream, and a client device. The STUN server is necessary for enabling connections between devices behind NATs, which is not the case for Fractal cloud computers hosted on Azure/AWS, but can be used for non-NAT devices as well.
 
