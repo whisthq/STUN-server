@@ -1,6 +1,6 @@
 # C/C++ Workflow testing a STUN server via integration and unit tests.
 
-name: C/C++ CI
+name: STUN CI
 
 on:
   push:
