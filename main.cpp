@@ -18,6 +18,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+
 #include <cerrno>
 
 #define HOLEPUNCH_PORT 48800  // Fractal default holepunch port
@@ -25,7 +26,7 @@
 
 FILE* log_file = NULL;
 
-void log(const char *fmt, ...) {
+void log(const char* fmt, ...) {
     if (!log_file) {
         log_file = fopen("log.txt", "a");
     }
@@ -151,13 +152,13 @@ void* grab_tcp_connection(void* vargp) {
         socklen_t slen = sizeof(si_client);
 
         int new_tcp_socket;
-        if ((new_tcp_socket = accept(tcp_socket, (struct sockaddr*)&si_client,
-                                     &slen)) < 0) {
+        if ((new_tcp_socket =
+                 accept(tcp_socket, (struct sockaddr*)&si_client, &slen)) < 0) {
             log("Failed to TCP accept(3)\n");
             continue;
         }
 
-        tcp_connection_data_t *handle_tcp_response_data =
+        tcp_connection_data_t* handle_tcp_response_data =
             new tcp_connection_data_t;
         handle_tcp_response_data->si_client = si_client;
         handle_tcp_response_data->new_tcp_socket = new_tcp_socket;
@@ -222,7 +223,7 @@ int main(void) {
     timeout.tv_sec = 0;
     timeout.tv_usec = 1 * 1000;
 
-    if (setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (const char *)&timeout,
+    if (setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout,
                    sizeof(timeout)) < 0) {
         log("Could not set timeout!\n");
         return -1;
@@ -279,7 +280,7 @@ int main(void) {
                 struct in_addr requested_addr;
                 requested_addr.s_addr = request.entry.ip;
 
-                char *original = inet_ntoa(si_client.sin_addr);
+                char* original = inet_ntoa(si_client.sin_addr);
 
                 log("%s:%d Wants to connect to public %s:%d.\n", original,
                     ntohs(si_client.sin_port), inet_ntoa(requested_addr),
@@ -291,7 +292,7 @@ int main(void) {
                 int server_socket = s;
 
                 if (stun_entries.count(ip)) {
-                    for (stun_map_entry_t &map_entry : stun_entries[ip]) {
+                    for (stun_map_entry_t& map_entry : stun_entries[ip]) {
                         if (time() - map_entry.time >
                             STUN_ENTRY_TIMEOUT / 1000.0) {
                             continue;
@@ -342,7 +343,7 @@ int main(void) {
                 request.entry.ip = ip;
                 request.entry.private_port = si_client.sin_port;
                 bool found = false;
-                for (stun_map_entry_t &map_entry : stun_entries[ip]) {
+                for (stun_map_entry_t& map_entry : stun_entries[ip]) {
                     if (map_entry.entry.public_port ==
                         request.entry.public_port) {
                         if (time() - map_entry.time >

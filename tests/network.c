@@ -5,6 +5,8 @@
  *        testing.
  */
 
+#include "network.h"
+
 #include <arpa/inet.h>
 #include <errno.h>
 #include <netdb.h>
@@ -22,18 +24,17 @@
 #include <unistd.h>
 
 #include "clock.h"
-#include "network.h"
 
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 
-FILE *log_file = NULL;
+FILE* log_file = NULL;
 
 void flog(const char* fmt, ...) {
     if (!log_file) {
         log_file = fopen("flog.txt", "a");
     }
-    char *time_string = FractalCurrentTimeStr();
+    char* time_string = FractalCurrentTimeStr();
 
     printf("%s | ", time_string);
     fprintf(log_file, "%s | ", time_string);
@@ -210,7 +211,7 @@ int CreateUDPServerContextStun(SocketContext* context, int port,
     stun_request.entry.public_port = htons((unsigned short)port);
 
     flog("Sending stun entry to STUN...");
-    if (sendto(context->s, (const char *)&stun_request, sizeof(stun_request), 0,
+    if (sendto(context->s, (const char*)&stun_request, sizeof(stun_request), 0,
                (struct sockaddr*)&stun_addr, sizeof(stun_addr)) < 0) {
         flog("Could not send message to STUN %d\n", GetLastNetworkError());
         closesocket(context->s);
@@ -368,7 +369,7 @@ int CreateTCPClientContextStun(SocketContext* context, char* destination,
 
     // Reuse addr
     opt = 1;
-    if (setsockopt(context->s, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt,
+    if (setsockopt(context->s, SOL_SOCKET, SO_REUSEADDR, (const char*)&opt,
                    sizeof(opt)) < 0) {
         flog("Could not setsockopt SO_REUSEADDR\n");
         return -1;

@@ -2,7 +2,8 @@
  * Copyright Fractal Computers, Inc. 2020
  * @file test_stun.c
  * @brief A set of tests to be run on github actions or locally. These tests
- *        assume a stun server running on the same machine accessible at 127.0.0.1
+ *        assume a stun server running on the same machine accessible at
+ * 127.0.0.1
  */
 
 #include <pthread.h>
@@ -20,7 +21,8 @@ void setUp(void) { int b = 2; }
 void tearDown(void) { int a = 1; }
 
 /**
- * @brief            Creates a UDP context on the stun. Modifies the state of the stun
+ * @brief            Creates a UDP context on the stun. Modifies the state of
+ * the stun
  */
 void test_UDP_server_context(void) {
     char destination[] = "127.0.0.1";
@@ -31,8 +33,9 @@ void test_UDP_server_context(void) {
 }
 
 /**
- * @brief            Create a client UDP context, this tests that the context exists on the
- *                   STUN. This function must run after test_UDP_server_context to pass
+ * @brief            Create a client UDP context, this tests that the context
+ * exists on the STUN. This function must run after test_UDP_server_context to
+ * pass
  */
 void test_UDP_client_context(void) {
     char destination[] = "127.0.0.1";
@@ -43,8 +46,8 @@ void test_UDP_client_context(void) {
 }
 
 /**
- * @brief           Test that the server TCP context fails when there is no client on the
- *                  other side.
+ * @brief           Test that the server TCP context fails when there is no
+ * client on the other side.
  */
 void test_TCP_server_context_no_client(void) {
     SocketContext context;
@@ -54,7 +57,8 @@ void test_TCP_server_context_no_client(void) {
 }
 
 /**
- * @brief           Spin up a thread to poll the stun looking for incoming TCP connections
+ * @brief           Spin up a thread to poll the stun looking for incoming TCP
+ * connections
  * @param args      NULL
  * @return          NULL
  */
@@ -72,8 +76,8 @@ void *server_TCP_loop(void *args) {
 }
 
 /**
- * @brief           Spin up a thread looking for incoming TCP connections on the STUN then
- *                  attempt to create a TCP context with that thread.
+ * @brief           Spin up a thread looking for incoming TCP connections on the
+ * STUN then attempt to create a TCP context with that thread.
  */
 void test_TCP_client_context(void) {
     pthread_t thread_id;
