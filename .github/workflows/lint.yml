@@ -1,3 +1,5 @@
+# Lint C/C++ code via Clang-format
+
 name: clang-format
 
 on:
@@ -9,13 +11,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        
       - name: clang-format
-        run: clang-format -i *.cpp
+        run: clang-format -i *.cpp *.h *.c
+        
       - name: Commit files
         run: |
          git config --local user.email "linter@fractalcomputers.com"
-         git config --local user.name "fractal linter"
+         git config --local user.name "Fractal Linter"
          git diff-index --quiet HEAD || git commit -m "Linted with clang-format" -a
+         
      - name: Push changes
        uses: ad-m/github-push-action@master
        with:
