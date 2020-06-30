@@ -40,7 +40,7 @@ We use clang-format for the coding style on this repository. You can easily run 
 
 ## Running Servers
 
-There are currently 1 STUN server(s) active: https://lightsail.aws.amazon.com/ls/webapp/home/instances
+There are currently 1 STUN server(s) [active](https://lightsail.aws.amazon.com/ls/webapp/home/instances). 
 
 ## Publishing & Updating
 
