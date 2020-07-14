@@ -155,7 +155,7 @@ void* grab_tcp_connection(void* vargp) {
         if ((new_tcp_socket =
                  accept(tcp_socket, (struct sockaddr*)&si_client, &slen)) < 0) {
             log("Failed to TCP accept(3): %s\n", strerror(errno));
-	    usleep(1000);
+            usleep(1000);
             continue;
         }
 
@@ -200,19 +200,22 @@ int main(void) {
 
     // bind socket to this endpoint
     if (bind(s, (struct sockaddr*)&si_me, sizeof(si_me)) < 0) {
-        log("Failed to bind socket. `sudo reboot` and try again: %s\n", strerror(errno));
+        log("Failed to bind socket. `sudo reboot` and try again: %s\n",
+            strerror(errno));
         return -2;
     }
 
     int opt = 1;
     if (setsockopt(tcp_socket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt,
                    sizeof(opt)) < 0) {
-        log("Failed to set reuseaddr socket. `sudo reboot` and try again: %s\n", strerror(errno));
+        log("Failed to set reuseaddr socket. `sudo reboot` and try again: %s\n",
+            strerror(errno));
         return -2;
     }
 
     if (bind(tcp_socket, (struct sockaddr*)&si_me, sizeof(si_me)) < 0) {
-        log("Failed to bind socket. `sudo reboot` and try again: %s\n", strerror(errno));
+        log("Failed to bind socket. `sudo reboot` and try again: %s\n",
+            strerror(errno));
         return -2;
     }
 
