@@ -244,7 +244,7 @@ int main(void) {
             }
         }
 
-        int tcp_connection_socket = -1;
+        int tcp_connection_socket = 0;
 
         // Triggered a TCP listen
         if (recv_size == 0) {
@@ -288,7 +288,7 @@ int main(void) {
 
                 int ip = request.entry.ip;
                 int port = request.entry.public_port;
-                int private_port = -1;
+                int private_port = 0;
                 int server_socket = s;
 
                 if (stun_entries.count(ip)) {
@@ -311,8 +311,8 @@ int main(void) {
                     }
                 }
 
-                if (private_port == -1) {
-                    request.entry.private_port = -1;
+                if (private_port == 0) {
+                    request.entry.private_port = 0;
                     log("Could not find private_port entry associated with "
                         "%s:%d!\n\n",
                         inet_ntoa(requested_addr), ntohs(port));
@@ -355,7 +355,7 @@ int main(void) {
                         found = true;
                         map_entry.time = time();
                         map_entry.entry = request.entry;
-                        map_entry.tcp_socket = -1;
+                        map_entry.tcp_socket = 0;
                         if (tcp_connection_socket > 0) {
                             map_entry.tcp_socket = tcp_connection_socket;
                         }
@@ -371,7 +371,7 @@ int main(void) {
                     stun_map_entry_t map_entry;
                     map_entry.time = time();
                     map_entry.entry = request.entry;
-                    map_entry.tcp_socket = -1;
+                    map_entry.tcp_socket = 0;
                     if (tcp_connection_socket > 0) {
                         map_entry.tcp_socket = tcp_connection_socket;
                     }
