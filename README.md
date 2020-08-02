@@ -6,7 +6,7 @@ This repository contains the implementation of the Fractal STUN/hole-punching se
 
 Fractal STUN server(s) are all hosted on AWS Lightsail instances running Ubuntu 18.04. To create a new STUN server instance:
 
-- Create an Ubuntu 18.04 OS-only instance from the AWS Lightsail platform. You should have your own AWS IAM -- if you don't, you can request one.
+- Create an Ubuntu 18.04 OS-only instance from the AWS Lightsail platform. You should have your own AWS IAM and can use it to log in. If you don't, you can request one.
 - Create a Static IP and attach it to your instance.
 - Go to your instance's networking and open SSH on the regular port 22, and TCP and UDP on port 48800. You should remove everything else.
 
