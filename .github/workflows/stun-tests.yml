@@ -11,37 +11,38 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-      with:
-        persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
-        fetch-depth: 0 # otherwise, you will failed to push refs to dest repo
+      - name: Checkout Git repository
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
+          fetch-depth: 0 # otherwise, you will failed to push refs to dest repo
       
-    - name: Configure
-      run: ./setup.sh
+      - name: Configure
+        run: ./setup.sh
       
-    - name: make STUN
-      run: make
+      - name: make STUN
+        run: make
       
-    - name: make tests
-      working-directory: tests
-      run: make
+      - name: make tests
+        working-directory: tests
+        run: make
       
-    - name: add matcher
-      run: echo "::add-matcher::${{ github.workspace }}/.github/unit_test_matcher.json"
+      - name: add matcher
+        run: echo "::add-matcher::${{ github.workspace }}/.github/unit_test_matcher.json"
       
-    - name: run STUN as background process and run tests
-      run: (./stun&); sleep 1; ./tests/test_stun
+      - name: run STUN as background process and run tests
+        run: (./stun&); sleep 1; ./tests/test_stun
       
-    - name: Archive STUN logs
-      if: always()
-      uses: actions/upload-artifact@v1
-      with:
-        name: stun_log
-        path: log.txt
+      - name: Archive STUN logs
+        if: always()
+        uses: actions/upload-artifact@v1
+        with:
+          name: stun_log
+          path: log.txt
 
-    - name: Archive test logs
-      if: always()
-      uses: actions/upload-artifact@v1
-      with:
-        name: stun_tests_log
-        path: flog.txt
+      - name: Archive test logs
+        if: always()
+        uses: actions/upload-artifact@v1
+        with:
+          name: stun_tests_log
+          path: flog.txt
