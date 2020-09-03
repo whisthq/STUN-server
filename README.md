@@ -36,11 +36,13 @@ We have continuous integration set up in this project, using GitHub Actions. Whe
 
 ## Styling
 
-We use clang-format for the coding style on this repository. You can easily run `clang-format -i <file>` to run it on a specific file, or `clang-format -i *.cpp` to run it on all C++ files, for example.
+We use clang-format for the coding style on this repository. We have [pre-commit hooks](https://pre-commit.com/) with clang-format support installed on this project, which you can initialize by first installing pre-commit via `pip install pre-commit` and then running `pre-commit install` to instantiate the hooks for clang-format.
+
+You can always run `clang-format -i <file>` to run it on a specific file, or `clang-format -i *.cpp` to run it on all C++ files, for example.
 
 ## Publishing & Updating
 
-Currently, we do not have an automated way to replace the STUN server in AWS Lightsail other than manually take it down, git pull/make and start the new version. Once you have updated the production code, you should run `./update.sh` to notify the Fractal team via Slack.  
+Currently, we do not have an automated way to replace the STUN server in AWS Lightsail other than manually take it down via SSH through the Lightsail portal, git pull/make and start the new version. Once you have updated the production code, you should run `./update.sh` to notify the Fractal team via Slack.  
 
 ### Running STUN Servers
 
