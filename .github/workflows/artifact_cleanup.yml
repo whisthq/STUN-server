@@ -1,4 +1,4 @@
-# This workflow deletes GitHub Actions artifacts after 14 days
+# This workflow deletes GitHub Actions artifacts after 7 days
 
 name: 'Delete old artifacts'
 
