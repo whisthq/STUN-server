@@ -11,8 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Purge artifacts over 14 days old
+      - name: Purge artifacts over 7 days old
         uses: kolpav/purge-artifacts-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          expire-in: 14days # Setting this to 0 will delete all
+          expire-in: 7days # Setting this to 0 will delete all
