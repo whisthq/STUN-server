@@ -3,7 +3,7 @@
  * @file test_stun.c
  * @brief A set of tests to be run on github actions or locally. These tests
  *        assume a stun server running on the same machine accessible at
- * 127.0.0.1
+ *        127.0.0.1
  */
 
 #include <pthread.h>
@@ -22,7 +22,7 @@ void tearDown(void) { int a = 1; }
 
 /**
  * @brief            Creates a UDP context on the stun. Modifies the state of
- * the stun
+ *                   the stun
  */
 void test_UDP_server_context(void) {
     char destination[] = "127.0.0.1";
@@ -34,8 +34,8 @@ void test_UDP_server_context(void) {
 
 /**
  * @brief            Create a client UDP context, this tests that the context
- * exists on the STUN. This function must run after test_UDP_server_context to
- * pass
+ *                   exists on the STUN. This function must run after 
+ *                   test_UDP_server_context to pass
  */
 void test_UDP_client_context(void) {
     char destination[] = "127.0.0.1";
@@ -47,7 +47,7 @@ void test_UDP_client_context(void) {
 
 /**
  * @brief           Test that the server TCP context fails when there is no
- * client on the other side.
+ *                  client on the other side.
  */
 void test_TCP_server_context_no_client(void) {
     SocketContext context;
@@ -58,8 +58,10 @@ void test_TCP_server_context_no_client(void) {
 
 /**
  * @brief           Spin up a thread to poll the stun looking for incoming TCP
- * connections
+ *                  connections
+ *
  * @param args      NULL
+ *
  * @return          NULL
  */
 void *server_TCP_loop(void *args) {
@@ -77,7 +79,7 @@ void *server_TCP_loop(void *args) {
 
 /**
  * @brief           Spin up a thread looking for incoming TCP connections on the
- * STUN then attempt to create a TCP context with that thread.
+ *                  STUN then attempt to create a TCP context with that thread.
  */
 void test_TCP_client_context(void) {
     pthread_t thread_id;
