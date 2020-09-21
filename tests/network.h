@@ -1,11 +1,11 @@
-#ifndef STUN_SERVER_TEST_NETWORK_H
-#define STUN_SERVER_TEST_NETWORK_H
 /**
  * Copyright Fractal Computers, Inc. 2020
  * @file network.h
  * @brief A stripped down version of the protocol network.h to allow for stun
  *        testing.
  */
+#ifndef STUN_SERVER_TEST_NETWORK_H
+#define STUN_SERVER_TEST_NETWORK_H
 
 #include <arpa/inet.h>
 #include <netdb.h>
