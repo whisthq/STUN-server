@@ -65,20 +65,26 @@ void log(const char* fmt, ...) {
 
 using namespace std;
 
-// a small struct to hold a UDP client endpoint, pair struct in linkedlist.h
+// A small struct to maintain pending STUN pairs
+// private_port is the port that the client wants to connect to,
+// and public_port is what the client must actually connect to in order to access the underlying private_port
 typedef struct {
     unsigned int ip;
     unsigned short private_port;
     unsigned short public_port;
 } stun_entry_t;
 
+// Servers will post info about themselves, clients will ask info about servers 
 typedef enum stun_request_type { ASK_INFO, POST_INFO } stun_request_type_t;
 
 typedef struct {
+    // Ask or Post
     stun_request_type_t type;
+    // IP / priv / public
     stun_entry_t entry;
 } stun_request_t;
 
+// 
 typedef struct {
     double time;
     int tcp_socket;
@@ -94,17 +100,23 @@ double time() {
 }
 
 atomic<int> tcp_socket;
-atomic<bool> tcp_connection_pending;
 
 typedef struct {
+    // Unique internal tcp socket for communication, see return value of accept(3)
     int new_tcp_socket;
+    // Client IP/Port data
     struct sockaddr_in si_client;
+    // The request itself
     stun_request_t request;
+    // Used to ensure validity of request. If recv_size != sizeof(stun_request_t), then "request" is not filled correctly
     int recv_size;
 } tcp_connection_data_t;
 
 pthread_mutex_t tcp_connection_data_mutex = PTHREAD_MUTEX_INITIALIZER;
+// A TCP Connection Ask/Post request will be dumped into this struct upon receival
 tcp_connection_data_t tcp_connection_data;
+// True if tcp_connection_data is currently holding TCP data
+atomic<bool> pending_tcp_data;
 
 void* handle_tcp_response(void* vargp) {
     tcp_connection_data_t* handle_tcp_response_data =
@@ -121,11 +133,14 @@ void* handle_tcp_response(void* vargp) {
     }
 
     while (true) {
-        while (tcp_connection_pending)
+        // If pending_tcp_data, wait for main.c to read the data out of tcp_connection_data
+        while (pending_tcp_data)
             ;
 
+        // Use mutex to negotiate which pending handle_tcp_response actually writes to the buffer first,
+        // As there may be several waiting at the same time
         pthread_mutex_lock(&tcp_connection_data_mutex);
-        if (tcp_connection_pending) {
+        if (pending_tcp_data) {
             pthread_mutex_unlock(&tcp_connection_data_mutex);
             continue;
         }
@@ -134,7 +149,7 @@ void* handle_tcp_response(void* vargp) {
         tcp_connection_data.new_tcp_socket = new_tcp_socket;
         tcp_connection_data.request = request;
         tcp_connection_data.recv_size = recv_size;
-        tcp_connection_pending = true;
+        pending_tcp_data = true;
         pthread_mutex_unlock(&tcp_connection_data_mutex);
         break;
     }
@@ -143,6 +158,7 @@ void* handle_tcp_response(void* vargp) {
 
 void* grab_tcp_connection(void* vargp) {
     while (true) {
+        // Listen indefinitely until a request occurs
         if (listen(tcp_socket, 3) < 0) {
             log("Failed to TCP listen(2): %s\n", strerror(errno));
             return NULL;
@@ -151,6 +167,8 @@ void* grab_tcp_connection(void* vargp) {
         struct sockaddr_in si_client;
         socklen_t slen = sizeof(si_client);
 
+        // Grab the request ("accept" gives it a unique internal tcp_socket for just that one TCP instance,
+        //                   since they all end up sharing the underlying TCP port)
         int new_tcp_socket;
         if ((new_tcp_socket =
                  accept(tcp_socket, (struct sockaddr*)&si_client, &slen)) < 0) {
@@ -159,6 +177,7 @@ void* grab_tcp_connection(void* vargp) {
             continue;
         }
 
+        // Handle the response asynchronously
         tcp_connection_data_t* handle_tcp_response_data =
             new tcp_connection_data_t;
         handle_tcp_response_data->si_client = si_client;
@@ -219,7 +238,7 @@ int main(void) {
         return -2;
     }
 
-    tcp_connection_pending = false;
+    pending_tcp_data = false;
     pthread_t thread_id;
     pthread_create(&thread_id, NULL, grab_tcp_connection, NULL);
 
@@ -234,7 +253,7 @@ int main(void) {
     }
 
     // main hole punching loop
-    while (1) {
+    while (true) {
         stun_request_t request;  // receive buffer
 
         // When a new client sends a datagram connection request...
@@ -250,15 +269,17 @@ int main(void) {
 
         int tcp_connection_socket = 0;
 
-        // Triggered a TCP listen
+        // TCP Listens are trigger by UDP packets of size 0
+        // (This system isn't needed anymore, we can simply check pending_tcp_data before checking recvfrom, as long as recvfrom gets a timeout)
         if (recv_size == 0) {
-            if (tcp_connection_pending) {
+            // Check for any pending TCP data
+            if (pending_tcp_data) {
                 log("TCP Connection found!\n");
                 si_client = tcp_connection_data.si_client;
                 tcp_connection_socket = tcp_connection_data.new_tcp_socket;
                 request = tcp_connection_data.request;
                 recv_size = tcp_connection_data.recv_size;
-                tcp_connection_pending = false;
+                pending_tcp_data = false;
             } else {
                 // Received neither TCP nor UDP
                 continue;
@@ -269,6 +290,7 @@ int main(void) {
         int connection_socket = s;
         if (tcp_connection_socket > 0) {
             type = "TCP";
+            // Use the special tcp unique connection socket
             connection_socket = tcp_connection_socket;
         }
 
@@ -290,18 +312,23 @@ int main(void) {
                     ntohs(si_client.sin_port), inet_ntoa(requested_addr),
                     ntohs(request.entry.public_port));
 
+                // Record the public IP:Port that the client wants to connect to
                 int ip = request.entry.ip;
                 int port = request.entry.public_port;
-                int private_port = 0;
+                int private_port = 0; // Put the private_port here
                 int server_socket = s;
 
+                // Check for stun entries related to this IP
                 if (stun_entries.count(ip)) {
                     for (stun_map_entry_t& map_entry : stun_entries[ip]) {
+                        // If map entry is expired, ignore it
                         if (time() - map_entry.time >
                             STUN_ENTRY_TIMEOUT / 1000.0) {
                             continue;
                         }
                         stun_entry_t entry = map_entry.entry;
+                        // If this entry matches the requested public port,
+                        // we found the correct private port!
                         if (port == entry.public_port) {
                             if (map_entry.tcp_socket > 0) {
                                 server_socket = map_entry.tcp_socket;
@@ -316,11 +343,13 @@ int main(void) {
                 }
 
                 if (private_port == 0) {
+                    // Missing private port is 0, notifying the client that no such private port was found
                     request.entry.private_port = 0;
                     log("Could not find private_port entry associated with "
                         "%s:%d!\n\n",
                         inet_ntoa(requested_addr), ntohs(port));
                 } else {
+                    // Fill in the missing private_port data
                     request.entry.private_port = private_port;
 
                     struct sockaddr_in si_server;
@@ -329,6 +358,7 @@ int main(void) {
                     si_server.sin_port = request.entry.private_port;
 
                     stun_entry_t entry;
+                    // Tell the server what IP:Port the client has
                     entry.ip = si_client.sin_addr.s_addr;
                     entry.private_port = si_client.sin_port;
 
@@ -337,7 +367,7 @@ int main(void) {
                            (struct sockaddr*)&si_server, sizeof(si_server));
                 }
 
-                // Return answer to STUN request
+                // Return request with private port to client
                 log("Responding to STUN request\n");
                 sendto(connection_socket, &request.entry, sizeof(request.entry),
                        MSG_NOSIGNAL, (struct sockaddr*)&si_client,
@@ -346,12 +376,15 @@ int main(void) {
                 int ip = si_client.sin_addr.s_addr;
                 request.entry.ip = ip;
                 request.entry.private_port = si_client.sin_port;
+
+                // First check if the entry is already in the map, because if so we should just update it
                 bool found = false;
                 for (stun_map_entry_t& map_entry : stun_entries[ip]) {
                     if (map_entry.entry.public_port ==
                         request.entry.public_port) {
                         if (time() - map_entry.time >
                             STUN_ENTRY_TIMEOUT / 1000.0) {
+                            // If the entry would've been expired, we log it as a new POST_INFO packet rather than silently refresh the port info
                             log("Received %s POST_INFO packet from %s:%d.\n\n",
                                 type, inet_ntoa(si_client.sin_addr),
                                 ntohs(si_client.sin_port));
@@ -365,13 +398,18 @@ int main(void) {
                         }
                     }
                 }
+
+                // If we didn't find any such entry, we add it to the map
                 if (!found) {
                     log("Received %s POST_INFO packet from %s:%d.\n\n", type,
                         inet_ntoa(si_client.sin_addr),
                         ntohs(si_client.sin_port));
+                    // If the IP has 5 ongoing requests at the same time, erase one of them. This should never happen for our protocol,
+                    // so it not a problem if a request is dropped due to such a situation (But it protects us from tampering)
                     if (stun_entries[ip].size() > 5) {
                         stun_entries[ip].erase(stun_entries[ip].begin());
                     }
+                    // Record the map entry
                     stun_map_entry_t map_entry;
                     map_entry.time = time();
                     map_entry.entry = request.entry;
@@ -386,9 +424,9 @@ int main(void) {
             log("Incorrect size! %d instead of %d\n", recv_size,
                 (int)sizeof(request));
         }
-    }  // end of connection listening for loop
+    } // End of connection listening for loop
 
-    // hole punching loop exited, close everything
-    close(s);  // close socket
+    // Cleanup socket
+    close(s);
     return 0;
 }
