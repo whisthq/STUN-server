@@ -1,10 +1,45 @@
+/**
+ * Copyright Fractal Computers, Inc. 2020
+ * @file clock.h
+ * @brief Helper functions for timing
+============================
+Usage
+============================
+
+Use these functions to time code, via FractalStartTimer and FractalGetTimer.
+*/
+
+/*
+============================
+Includes
+============================
+*/
+
 #include "clock.h"
+
+/*
+============================
+Defines
+============================
+*/
 
 #if defined(_WIN32)
 LARGE_INTEGER frequency;
 bool set_frequency = false;
 #endif
 
+/*
+============================
+Public Functions
+============================
+*/
+
+/**
+ * @brief                          Start the given timer at the current time, as
+ *                                 a stopwatch
+ *
+ * @param timer		               Pointer to the the timer in question
+ */
 void FractalStartTimer(fractal_clock_t* timer) {
 #if defined(_WIN32)
     if (!set_frequency) {
@@ -19,6 +54,12 @@ void FractalStartTimer(fractal_clock_t* timer) {
     return;
 }
 
+/**
+ * @brief                          Get the amount of elapsed time since the last
+ *                                 StartTimer
+ *
+ * @param timer		               The timer in question
+ */
 double FractalGetTimer(fractal_clock_t timer) {
 #if defined(_WIN32)
     LARGE_INTEGER end;
@@ -42,6 +83,14 @@ double FractalGetTimer(fractal_clock_t timer) {
     return ret;
 }
 
+/**
+ * @brief                          Create a clock that represents the given
+ *                                 timeout in milliseconds
+ *
+ * @param timeout_ms	           The number of milliseconds for the clock
+ *
+ * @returns						   The desired clock
+ */
 fractal_clock_t FractalCreateClock(int timeout_ms) {
     fractal_clock_t out;
 #if defined(_WIN32)
@@ -53,6 +102,11 @@ fractal_clock_t FractalCreateClock(int timeout_ms) {
     return out;
 }
 
+/**
+ * @brief                          Returns the current time as a string
+ *
+ * @returns						   The current time as a string
+ */
 char* FractalCurrentTimeStr() {
     static char buffer[64];
 

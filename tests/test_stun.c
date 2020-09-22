@@ -4,7 +4,13 @@
  * @brief A set of tests to be run on github actions or locally. These tests
  *        assume a stun server running on the same machine accessible at
  *        127.0.0.1
- */
+**/
+
+/*
+============================
+Includes
+============================
+*/
 
 #include <pthread.h>
 #include <unistd.h>
@@ -12,13 +18,27 @@
 #include "network.h"
 #include "unity.h"
 
+/*
+============================
+Defines
+============================
+*/
+
+// STUN ports
 #define PORT_SERVER_TO_CLIENT 32263
 #define PORT_CLIENT_TO_SERVER 32262
 #define TCP_PORT 32264
 
+// Unity basics
 void setUp(void) { int b = 2; }
 
 void tearDown(void) { int a = 1; }
+
+/*
+============================
+Public Functions
+============================
+*/
 
 /**
  * @brief            Creates a UDP context on the stun. Modifies the state of
@@ -91,6 +111,9 @@ void test_TCP_client_context(void) {
     pthread_join(thread_id, NULL);
 }
 
+/**
+ * @brief          Run the Unity tests
+ */
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_UDP_server_context);

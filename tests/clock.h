@@ -49,7 +49,7 @@ Public Functions
  * @brief                          Start the given timer at the current time, as
  *                                 a stopwatch
  *
- * @param timer		                 Pointer to the the timer in question
+ * @param timer		               Pointer to the the timer in question
  */
 void FractalStartTimer(fractal_clock_t* timer);
 
@@ -57,7 +57,7 @@ void FractalStartTimer(fractal_clock_t* timer);
  * @brief                          Get the amount of elapsed time since the last
  *                                 StartTimer
  *
- * @param timer		                 The timer in question
+ * @param timer		               The timer in question
  */
 double FractalGetTimer(fractal_clock_t timer);
 
@@ -65,16 +65,16 @@ double FractalGetTimer(fractal_clock_t timer);
  * @brief                          Create a clock that represents the given
  *                                 timeout in milliseconds
  *
- * @param timeout_ms	             The number of milliseconds for the clock
+ * @param timeout_ms	           The number of milliseconds for the clock
  *
- * @returns						             The desired clock
+ * @returns						   The desired clock
  */
 fractal_clock_t FractalCreateClock(int timeout_ms);
 
 /**
  * @brief                          Returns the current time as a string
  *
- * @returns						             The current time as a string
+ * @returns						   The current time as a string
  */
 char* FractalCurrentTimeStr();
 

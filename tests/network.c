@@ -1,9 +1,20 @@
 /**
  * Copyright Fractal Computers, Inc. 2020
- * @file network.c
- * @brief A stripped down version of the protocol network.c to allow for stun
- *        testing.
- */
+ * @file network.h
+ * @brief A stripped down version of the protocol network.h to allow for STUN
+ *        testing
+============================
+Usage
+============================
+
+Use these functions to create UDP and TCP ports to listen for connections.
+*/
+
+/*
+============================
+Includes
+============================
+*/
 
 #include "network.h"
 
@@ -25,8 +36,20 @@
 
 #include "clock.h"
 
+/*
+============================
+Defines
+============================
+*/
+
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 #define min(a, b) (((a) < (b)) ? (a) : (b))
+
+/*
+============================
+Public Functions
+============================
+*/
 
 FILE* log_file = NULL;
 

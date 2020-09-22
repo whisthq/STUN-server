@@ -3,9 +3,20 @@
 /**
  * Copyright Fractal Computers, Inc. 2020
  * @file network.h
- * @brief A stripped down version of the protocol network.h to allow for stun
- *        testing.
- */
+ * @brief A stripped down version of the protocol network.h to allow for STUN
+ *        testing
+============================
+Usage
+============================
+
+Use these functions to create UDP and TCP ports to listen for connections.
+*/
+
+/*
+============================
+Includes
+============================
+*/
 
 #include <arpa/inet.h>
 #include <netdb.h>
@@ -13,6 +24,12 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <sys/socket.h>
+
+/*
+============================
+Defines
+============================
+*/
 
 #define SOCKET int
 #define closesocket close
@@ -25,6 +42,12 @@
 
 #define STUN_IP "127.0.0.1"
 #define STUN_PORT 48800
+
+/*
+============================
+Custom Types
+============================
+*/
 
 typedef struct {
     unsigned int ip;
@@ -47,9 +70,16 @@ typedef struct SocketContext {
     int ack;
 } SocketContext;
 
+/*
+============================
+Public Functions
+============================
+*/
+
 int CreateUDPClientContextStun(SocketContext* context, char* destination,
                                int port, int recvfrom_timeout_ms,
                                int stun_timeout_ms);
+                             
 int CreateUDPServerContextStun(SocketContext* context, int port,
                                int recvfrom_timeout_ms, int stun_timeout_ms);
 

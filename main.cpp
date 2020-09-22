@@ -84,7 +84,6 @@ typedef struct {
     stun_entry_t entry;
 } stun_request_t;
 
-// 
 typedef struct {
     double time;
     int tcp_socket;
