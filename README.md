@@ -6,7 +6,7 @@ This repository contains the implementation of the Fractal STUN server that faci
 
 Fractal STUN server(s) are all hosted on AWS Lightsail instances running Ubuntu 18.04. 
 
-For further documentation, check this repository's [Wiki](https://github.com/fractalcomputers/STUN-server/wiki).
+For further documentation, check this repository's [Wiki](https://github.com/fractalcomputers/STUN-server/wiki). 
 
 ## Development
 
