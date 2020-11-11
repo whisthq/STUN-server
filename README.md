@@ -1,12 +1,12 @@
 # Fractal STUN Server
 
-![STUN CI](https://github.com/fractalcomputers/STUN-server/workflows/STUN%20CI/badge.svg)
+![STUN CI](https://github.com/fractal/STUN-server/workflows/STUN%20CI/badge.svg)
 
-This repository contains the implementation of the Fractal STUN server that facilitates a connection between a streaming server, typically a Fractal VM/container, and a client device. The STUN server is necessary for enabling connections between devices behind NATs, but can be used for non-NAT devices as well.
+This repository contains the implementation of the Fractal STUN server that facilitates a connection between a streaming server, typically a Fractal container, and a client device. The STUN server is necessary for enabling connections between devices behind NATs, but can be used for non-NAT devices as well.
 
 Fractal STUN server(s) are all hosted on AWS Lightsail instances running Ubuntu 18.04. 
 
-For further documentation, check this repository's [Wiki](https://github.com/fractalcomputers/STUN-server/wiki). 
+For further documentation, check this repository's [Wiki](https://github.com/fractal/STUN-server/wiki). 
 
 ## Development
 
