@@ -42,7 +42,7 @@ We have continuous integration set up in this project, using GitHub Actions. Whe
 
 ## Publishing & Updating
 
-Currently, we do not have an automated way to replace the STUN server in AWS Lightsail other than manually taking it down via SSH through the Lightsail portal, `git pull/make` and starting the new version. Once you have updated the production code, you should run `./update.sh` to notify the Fractal team via Slack.  
+Currently, we do not have an automated way to replace the STUN server in AWS Lightsail other than manually taking it down via SSH through the Lightsail portal, `git pull origin master && make` and starting the new version. Once you have updated the production code, you should run `./update.sh` to notify the Fractal team via Slack.  
 
 ## Styling
 
