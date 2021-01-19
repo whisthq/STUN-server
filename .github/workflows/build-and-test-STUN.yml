@@ -1,0 +1,39 @@
+# workflows/build-and-test-STUN.yml
+#
+# Build and Test STUN
+# Build and Test STUN Server via Integration and Unit Tests.
+
+name: "Build and Test STUN"
+
+on:
+    pull_request:
+        branches:
+            - master
+        paths-ignore:
+            - "**/README.md"
+    workflow_dispatch:
+
+jobs:
+    build-and-test-stun-main:
+        name: Build and Test STUN
+        runs-on: ubuntu-20.04
+
+        steps:
+            - name: Checkout Git repository
+              uses: actions/checkout@v2
+
+            - name: Configure
+              run: ./setup.sh
+
+            - name: make STUN
+              run: make
+
+            - name: make tests
+              working-directory: tests
+              run: make
+
+            - name: Add Unit Test Matcher
+              run: echo "::add-matcher::${{ github.workspace }}/.github/workflows/helpers/unit_test_matcher.json"
+
+            - name: Run STUN Server as Background Process and Run Tests
+              run: (./stun&); sleep 1; ./tests/test_stun

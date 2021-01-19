@@ -1,5 +1,5 @@
 /**
- * Copyright Fractal Computers, Inc. 2020
+ * Copyright Fractal Computers, Inc. 2021
  * @file main.cpp
  * @brief This file creates a STUN server that connects two clients through
  *        UDP and TCP hole punching, acting as a Fractal hole punching server.
