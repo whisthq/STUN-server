@@ -3,7 +3,7 @@
 # Lint with clang-format
 # Lint STUN Server with clang-format.
 
-name: "Lint with clang-format"
+name: "Clang-format"
 
 on:
     push:
@@ -31,4 +31,8 @@ jobs:
 
             - name: Check if Code is Linted
               run: |
-                  git diff-index --quiet HEAD || (echo "To pass this check please lint the code with clang-format" && false)
+                  # Show diff in GitHub Actions logs
+                  git diff HEAD --
+
+                  # This will return an error if there is a non-empty diff
+                  git diff-index --quiet HEAD --
