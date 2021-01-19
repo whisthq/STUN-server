@@ -6,7 +6,7 @@
 name: "Build and Test STUN"
 
 on:
-    pull_request:
+    push:
         branches:
             - master
         paths-ignore:
