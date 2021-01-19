@@ -6,9 +6,11 @@
 name: "Build and Test STUN"
 
 on:
-    push:
+    pull_request:
         branches:
             - master
+            - staging
+            - dev
         paths-ignore:
             - "**/README.md"
     workflow_dispatch:

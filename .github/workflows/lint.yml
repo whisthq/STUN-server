@@ -6,9 +6,11 @@
 name: "Clang-format"
 
 on:
-    push:
+    pull_request:
         branches:
             - master
+            - staging
+            - dev
         paths-ignore:
             - "**/README.md"
     workflow_dispatch:
