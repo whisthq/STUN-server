@@ -79,7 +79,7 @@ Public Functions
 int CreateUDPClientContextStun(SocketContext* context, char* destination,
                                int port, int recvfrom_timeout_ms,
                                int stun_timeout_ms);
-                             
+
 int CreateUDPServerContextStun(SocketContext* context, int port,
                                int recvfrom_timeout_ms, int stun_timeout_ms);
 

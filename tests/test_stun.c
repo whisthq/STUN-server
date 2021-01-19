@@ -4,7 +4,7 @@
  * @brief A set of tests to be run on github actions or locally. These tests
  *        assume a stun server running on the same machine accessible at
  *        127.0.0.1
-**/
+ **/
 
 /*
 ============================
@@ -54,7 +54,7 @@ void test_UDP_server_context(void) {
 
 /**
  * @brief            Create a client UDP context, this tests that the context
- *                   exists on the STUN. This function must run after 
+ *                   exists on the STUN. This function must run after
  *                   test_UDP_server_context to pass
  */
 void test_UDP_client_context(void) {
