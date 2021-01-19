@@ -1,6 +1,6 @@
 # Fractal STUN Server
 
-![Build and Test STUN](https://github.com/fractal/STUN-server/workflows/Build%20and%20Test%20STUN/badge.svg) ![Clang-format](https://github.com/fractal/STUN-server/workflows/Lint%20with%20clang-format/badge.svg)
+![Build and Test STUN](https://github.com/fractal/STUN-server/workflows/Build%20and%20Test%20STUN/badge.svg) ![Clang-format](https://github.com/fractal/STUN-server/workflows/Clang-format/badge.svg)
 
 This repository contains the implementation of the Fractal STUN server that facilitates a connection between a streaming server, typically a Fractal container, and a client device. The STUN server is necessary for enabling connections between devices behind NATs, but can be used for non-NAT devices as well.
 
