@@ -1,0 +1,12 @@
+# dependabot.yml
+#
+# Configuration file for Dependabot on the fractal/STUN-server repository
+
+version: 2
+
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/" # default location of `.github/workflows`
+    schedule:
+      interval: "monthly" # runs on the first day of each month
+    open-pull-requests-limit: 10
