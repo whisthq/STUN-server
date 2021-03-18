@@ -8,7 +8,7 @@ name: "Clang-format"
 on:
     pull_request:
         branches:
-            - master
+            - main
             - staging
             - dev
         paths-ignore:
