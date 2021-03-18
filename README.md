@@ -1,6 +1,6 @@
 # Fractal STUN Server
 
-![Build and Test STUN](https://github.com/fractal/STUN-server/workflows/Build%20and%20Test%20STUN/badge.svg) ![Clang-format](https://github.com/fractal/STUN-server/workflows/Clang-format/badge.svg)
+**THIS REPOSITORY WAS ARCHIVED FOLLOWING OUR MIGRATION AWAY FROM STREAMING VMS PEER-TO-PEER TOWARDS EXCLUSIVELY STREAMING VMS/CONTAINERS FROM PUBLIC CLOUD INFRASTRUCTURES, WHICH DO NOT REQUIRE A STUN SERVER AS THEY DON'T HAVE TO BE BEHIND NATS. IT IS KEPT HERE FOR REFERENCE SHOULD WE EVER NEED TO USE A STUN SERVER AGAIN.**
 
 This repository contains the implementation of the Fractal STUN server that facilitates a connection between a streaming server, typically a Fractal container, and a client device. The STUN server is necessary for enabling connections between devices behind NATs, but can be used for non-NAT devices as well.
 
@@ -38,11 +38,11 @@ immortal ./server
 
 It will run in the background and restart automatically if it exits. To see if it is running, you can run `immortalctl`, which prints the running jobs and their names & PID. A proccess can be shutdown via `immortalctl -k <process-name>`. 
 
-We have continuous integration set up in this project, using GitHub Actions. When a push or PR happens on branch `master` or `dev`, the executable will get compiled on Ubuntu and `clang-format` will be run, which will prompt you to format your code if it isn't formatted. It will also run unit and integration tests using Unity, including testing UDP and TCP connectivity. You can see those in the `/tests` folder. You should make sure that your commit passes the tests under the Actions tab before merging a pull request, if you are contributing.
+We have continuous integration set up in this project, using GitHub Actions. When a push or PR happens on branch `main` or `dev`, the executable will get compiled on Ubuntu and `clang-format` will be run, which will prompt you to format your code if it isn't formatted. It will also run unit and integration tests using Unity, including testing UDP and TCP connectivity. You can see those in the `/tests` folder. You should make sure that your commit passes the tests under the Actions tab before merging a pull request, if you are contributing.
 
 ## Publishing & Updating
 
-Currently, we do not have an automated way to replace the STUN server in AWS Lightsail other than manually taking it down via SSH through the Lightsail portal, `git pull origin master && make` and starting the new version. Once you have updated the production code, you should run `./update.sh` to notify the Fractal team via Slack.  
+Currently, we do not have an automated way to replace the STUN server in AWS Lightsail other than manually taking it down via SSH through the Lightsail portal, `git pull origin main && make` and starting the new version. Once you have updated the production code, you should run `./update.sh` to notify the Fractal team via Slack.  
 
 ## Styling
 
